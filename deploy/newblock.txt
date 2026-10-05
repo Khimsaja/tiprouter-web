@@ -1,0 +1,95 @@
+server {
+    server_name tiprouter.my.id;
+    client_max_body_size 16m;
+    root /var/www/tiprouter-spa;
+    index index.html;
+
+    # --- auth + API (tiprouter-auth) ---
+    location /auth/ {
+        proxy_pass http://127.0.0.1:12900;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location /api/ {
+        proxy_pass http://127.0.0.1:12900;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # --- QRIS payment gateway ---
+    location /qr/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # --- Cartethyia console + API gateway ---
+    location /console {
+        proxy_pass http://127.0.0.1:12800;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_buffering off;
+    }
+    location /v1 {
+        proxy_pass http://127.0.0.1:12800;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_buffering off;
+    }
+
+    # --- legacy redirects ---
+    location = /akun { return 301 /profile; }
+    location = /bansos/ { return 301 /bansos; }
+    location = /spinwheel/ { return 301 /spinwheel; }
+
+    # --- SPA static assets ---
+    location /assets/ {
+        try_files $uri =404;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    location = /logo-icon.png { try_files $uri =404; expires 7d; access_log off; }
+    location = /logo-full.png { try_files $uri =404; expires 7d; access_log off; }
+    location = /favicon.ico { try_files /logo-icon.png =404; expires 7d; access_log off; }
+
+    # --- SPA app (React) ---
+    location / {
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-61mMBtYOKsbjuKRZPwjlIwKU8WjJgANbsDJ/4KK8uxI=' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-src https://oauth.telegram.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+    }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/www.tiprouter.my.id/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/www.tiprouter.my.id/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}

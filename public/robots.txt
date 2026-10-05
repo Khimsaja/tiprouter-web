@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /profile
+Disallow: /gacha
+
+Sitemap: https://tiprouter.my.id/sitemap.xml
