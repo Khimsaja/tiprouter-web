@@ -354,4 +354,12 @@ export const EN_D: Record<string, string> = {
   "Belum ada data. Jadilah yang pertama.": "No data yet. Be the first.",
   "Kamu diundang teman": "A friend invited you",
   "daftar dan beli paket, kalian berdua dapat bonus hari.": "sign up and buy a package — you both get bonus days.",
+  "Pakai di OpenCode": "Use in OpenCode",
+  "Tambahkan TipRouter sebagai provider custom di opencode.json. Key diambil dari environment variable TIPROUTER_API_KEY.":
+    "Add TipRouter as a custom provider in opencode.json. The key is read from the TIPROUTER_API_KEY environment variable.",
+  "Simpan key-mu sebagai environment variable:": "Store your key as an environment variable:",
+  "Tempel konfigurasi di atas ke opencode.json (di folder project, atau global di ~/.config/opencode/).":
+    "Paste the config above into opencode.json (in your project folder, or globally at ~/.config/opencode/).",
+  "Di OpenCode jalankan /models dan pilih tiprouter/<model> — misalnya tiprouter/muse-spark-1.3.":
+    "In OpenCode run /models and pick tiprouter/<model> — e.g. tiprouter/muse-spark-1.3.",
 };
