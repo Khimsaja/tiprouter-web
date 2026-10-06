@@ -49,7 +49,6 @@ export function SiteHeader() {
           <a href="/#harga" onClick={anchor("#harga")}>{t("Harga")}</a>
           <NavLink to="/bansos" onClick={() => setOpen(false)}>Bansos</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
-          <NavLink to="/playground" onClick={() => setOpen(false)}>Playground</NavLink>
           <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
           <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
