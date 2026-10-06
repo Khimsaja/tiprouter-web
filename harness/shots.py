@@ -36,7 +36,12 @@ SAMPLE_KEY = {
     "requestsPerMinute": 150, "maxConcurrentRequests": 4,
     "modelAccessMode": "whitelist", "models": MODELS, "modelCount": len(MODELS),
     "tokensConsumed": 1234567, "status": "active",
+    "source": {"kind": "beli", "label": "Pembelian", "detail": "Plus"},
 }
+
+SAMPLE_KEY_GACHA = dict(SAMPLE_KEY, id="key-test-2", label="bro@test.id", prefix="tip_7g2hb1",
+                        tokensConsumed=54321,
+                        source={"kind": "gacha", "label": "Gacha Bansos", "detail": "6 jam"})
 
 FAKE_QR = (
     '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240">'
@@ -55,12 +60,28 @@ def make_handler(cfg):
 
     def handler(route):
         req = route.request
+        if not req.url.startswith(BASE):
+            return route.continue_()
         path = urlparse(req.url).path
         method = req.method
         if path == "/api/bansos-key":
             return j(route, {"key": "tip_bansosContohKeyBuatScreenshot123456"})
+        if path == "/api/proxies":
+            sample = [
+                {"protocol": "socks5", "ip": "103.152.4.18", "port": 1080, "country": "Indonesia", "country_code": "ID", "city": "Jakarta", "anonymity": "elite", "ssl": True, "uptime_percent": 98.2, "asn": "AS9340", "isp": "PT Example Net", "latency_ms": 84.5},
+                {"protocol": "http", "ip": "45.77.20.9", "port": 8080, "country": "Singapore", "country_code": "SG", "city": "Singapore", "anonymity": "anonymous", "ssl": False, "uptime_percent": 91.0, "asn": "AS20473", "isp": "Vultr Holdings", "latency_ms": 132.1},
+                {"protocol": "http", "ip": "178.62.201.44", "port": 3128, "country": "Netherlands", "country_code": "NL", "city": "Amsterdam", "anonymity": "elite", "ssl": True, "uptime_percent": 87.4, "asn": "AS14061", "isp": "DigitalOcean", "latency_ms": 210.9},
+                {"protocol": "socks4", "ip": "196.251.70.3", "port": 4145, "country": "Germany", "country_code": "DE", "city": "Falkenstein", "anonymity": "transparent", "ssl": False, "uptime_percent": 76.3, "asn": "AS24940", "isp": "Hetzner Online", "latency_ms": 301.2},
+                {"protocol": "socks5", "ip": "72.195.113.90", "port": 4145, "country": "United States", "country_code": "US", "city": "Ashburn", "anonymity": "elite", "ssl": True, "uptime_percent": 99.1, "asn": "AS7922", "isp": "Comcast Cable", "latency_ms": 240.0},
+            ]
+            return j(route, {"total": 6050, "page": 1, "limit": 50, "updatedAt": 1791185770275,
+                             "stats": {"total": 3512, "by_protocol": {"http": 793, "https": 236, "socks4": 260, "socks5": 2459},
+                                       "countries": ["DE", "ID", "NL", "SG", "US"], "country_count": 86,
+                                       "by_country": {"ID": 214, "SG": 96, "NL": 74, "DE": 67, "US": 288}},
+                             "items": sample})
         if path == "/api/config":
-            return j(route, {"google": True, "github": True, "telegramBot": "tiprouter_bot", "apikey": True})
+            return j(route, {"google": True, "github": True, "telegramBot": "tiprouter_bot", "apikey": True,
+                             "turnstileSiteKey": "1x00000000000000000000AA" if cfg.get("turnstile") else None})
         if path == "/api/me":
             if not cfg.get("user"):
                 return j(route, {"error": "unauthorized"}, 401)
@@ -71,7 +92,7 @@ def make_handler(cfg):
         if path == "/api/keys":
             if not cfg.get("user"):
                 return j(route, {"error": "unauthorized"}, 401)
-            return j(route, {"keys": [] if cfg.get("keys_empty") else [SAMPLE_KEY]})
+            return j(route, {"keys": [] if cfg.get("keys_empty") else [SAMPLE_KEY, SAMPLE_KEY_GACHA]})
         if path == "/api/gacha" and method == "GET":
             if not cfg.get("user"):
                 return j(route, {"error": "unauthorized"}, 401)
@@ -142,6 +163,31 @@ SHOTS = [
     ("mob-profile", "/profile", U, (390, 844), 2000),
     ("mob-bansos", "/bansos", {}, (390, 844), 1500),
     ("mob-spinwheel", "/spinwheel", {}, (390, 844), 1500),
+    ("desk-syarat", "/syarat", {}, (1440, 900), 1500),
+    ("mob-syarat", "/syarat", {}, (390, 844), 1500),
+    ("desk-logout-modal", "/dashboard", U, (1440, 900), 1500),
+    ("mob-logout-modal", "/dashboard", U, (390, 844), 1500),
+    ("desk-en-landing", "/", {"lang": "en"}, (1440, 900), 2500),
+    ("desk-en-login", "/login", {"lang": "en"}, (1440, 900), 1500),
+    ("desk-en-beli", "/beli", {"lang": "en"}, (1440, 900), 1500),
+    ("desk-en-bansos", "/bansos", {"lang": "en"}, (1440, 900), 1500),
+    ("desk-en-dashboard", "/dashboard", {"lang": "en", "user": True}, (1440, 900), 2000),
+    ("desk-en-keys", "/dashboard/keys", {"lang": "en", "user": True}, (1440, 900), 2000),
+    ("desk-en-profile", "/profile", {"lang": "en", "user": True}, (1440, 900), 2000),
+    ("desk-en-syarat", "/syarat", {"lang": "en"}, (1440, 900), 1500),
+    ("desk-en-spinwheel", "/spinwheel", {"lang": "en"}, (1440, 900), 1500),
+    ("mob-en-landing", "/", {"lang": "en"}, (390, 844), 2500),
+    ("mob-en-login", "/login", {"lang": "en"}, (390, 844), 1500),
+    ("mob-en-beli", "/beli", {"lang": "en"}, (390, 844), 1500),
+    ("mob-en-dashboard", "/dashboard", {"lang": "en", "user": True}, (390, 844), 2000),
+    ("mob-en-keys", "/dashboard/keys", {"lang": "en", "user": True}, (390, 844), 2000),
+    ("desk-login-turnstile", "/login", {"turnstile": True}, (1440, 900), 4000),
+    ("mob-menu-open", "/", {"open_menu": True}, (390, 844), 1500),
+    ("mob-menu-open-user", "/dashboard", {"open_menu": True, "user": True}, (390, 844), 2000),
+    ("desk-proxy", "/proxy", {}, (1440, 900), 2500),
+    ("mob-proxy", "/proxy", {}, (390, 844), 2500),
+    ("desk-en-proxy", "/proxy", {"lang": "en"}, (1440, 900), 2500),
+    ("mob-en-proxy", "/proxy", {"lang": "en"}, (390, 844), 2500),
 ]
 
 
@@ -153,13 +199,19 @@ def main():
             args=["--no-sandbox", "--disable-gpu", "--force-device-scale-factor=1"],
         )
         for name, path, cfg, (w, h), wait in SHOTS:
+            if os.environ.get("SHOTS_ONLY") and os.environ["SHOTS_ONLY"] not in name:
+                continue
             if only and name not in only:
                 continue
             ctx = browser.new_context(viewport={"width": w, "height": h})
+            if os.environ.get("LANG_EN"):
+                ctx.add_init_script("try{localStorage.setItem('tiprouter-lang','en')}catch(e){}")
             page = ctx.new_page()
             errors = []
             page.on("pageerror", lambda e, errs=errors: errs.append(str(e)))
             page.route("**/*", make_handler(cfg))
+            if cfg.get("lang"):
+                ctx.add_init_script(f"try{{localStorage.setItem('tiprouter-lang','{cfg['lang']}')}}catch(e){{}}")
             try:
                 page.goto(BASE + path, wait_until="networkidle", timeout=30000)
             except Exception as e:
@@ -167,13 +219,25 @@ def main():
                 ctx.close()
                 continue
             page.wait_for_timeout(wait)
+            if cfg.get("open_menu"):
+                try:
+                    page.locator(".burger").click()
+                    page.wait_for_timeout(700)
+                except Exception:
+                    pass
+            if "logout-modal" in name:
+                try:
+                    page.locator("button:has-text('Keluar'), button:has-text('Log Out')").first.click()
+                    page.wait_for_timeout(700)
+                except Exception:
+                    pass
             page.evaluate("""async () => {
                 const H = document.body.scrollHeight;
                 for (let y = 0; y < H; y += 600) { window.scrollTo(0, y); await new Promise(r => setTimeout(r, 140)); }
                 window.scrollTo(0, 0);
             }""")
             page.wait_for_timeout(1000)
-            out = f"{OUT}/{name}.png"
+            out = f"{OUT}/{name}{'-en' if os.environ.get('LANG_EN') else ''}.png"
             page.screenshot(path=out, full_page=True)
             print(f"{name}: ok" + (f" | pageerrors: {errors[:2]}" if errors else ""))
             ctx.close()

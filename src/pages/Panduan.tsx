@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { PageHead } from "../components/DashLayout";
+import { useLang } from "../lib/i18n";
 
 const PAGE_STYLE = `
 .copyrow{display:flex;gap:10px;align-items:stretch;margin-top:12px}
@@ -18,6 +19,7 @@ const CURL = `curl https://tiprouter.my.id/v1/chat/completions \\
   }'`;
 
 export default function Panduan() {
+  const { t } = useLang();
   const [copyLabel, setCopyLabel] = useState("Salin");
   const timer = useRef<number | undefined>(undefined);
 
@@ -35,14 +37,14 @@ export default function Panduan() {
   return (
     <>
       <style>{PAGE_STYLE}</style>
-      <PageHead title="Panduan" sub="Cara nyambungin aplikasi kamu ke TipRouter." />
+      <PageHead title={t("Panduan")} sub={t("Cara nyambungin aplikasi kamu ke TipRouter.")} />
       <div className="card" style={{ marginTop: 20 }}>
-        <h2>Cara pakai</h2>
-        <p>Semua aplikasi yang cocok sama OpenAI bisa langsung nyambung. Tinggal ganti base URL dan isi API key kamu.</p>
+        <h2>{t("Cara pakai")}</h2>
+        <p>{t("Semua aplikasi yang cocok sama OpenAI bisa langsung nyambung. Tinggal ganti base URL dan isi API key kamu.")}</p>
         <div className="copyrow">
           <div className="url">{BASE_URL}</div>
           <button className="btn" type="button" onClick={copyBase}>
-            {copyLabel}
+            {t(copyLabel)}
           </button>
         </div>
         <div className="codebox">{CURL}</div>
@@ -52,12 +54,12 @@ export default function Panduan() {
             <span className="v mono">POST /v1/chat/completions</span>
           </div>
           <div className="kv">
-            <span className="k">Daftar model</span>
+            <span className="k">{t("Daftar model")}</span>
             <span className="v mono">GET /v1/models</span>
           </div>
           <div className="kv">
             <span className="k">Fair use</span>
-            <span className="v">150 request/menit</span>
+            <span className="v">{t("150 request/menit")}</span>
           </div>
         </div>
       </div>

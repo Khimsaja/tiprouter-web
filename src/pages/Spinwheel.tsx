@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Dices, Gift, Upload } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
+import { localeTag, useLang } from "../lib/i18n";
 
 const CSS = `
 .sw-h1{font-size:clamp(34px,6vw,54px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:6px 0 10px}
@@ -70,7 +72,7 @@ const MAX_LABELED = 36;
 type PoolEntry = { number: number; name: string };
 type RangeResult = { error: string | null; min: number; max: number; count: number };
 
-const fmt = (n: number) => n.toLocaleString("id-ID");
+const fmt = (n: number) => n.toLocaleString(localeTag());
 
 // Fair uniform integer in [0, n) via crypto with rejection sampling.
 function randomBelow(n: number): number {
@@ -121,6 +123,8 @@ export default function Spinwheel() {
   const [soundOn, setSoundOn] = useState(true);
   const [poolEntries, setPoolEntries] = useState<PoolEntry[]>([]);
 
+  const { t } = useLang();
+
   const rotationRef = useRef(0);
   const spinningRef = useRef(false);
   const drawnRef = useRef<{ scope: string; drawn: Set<number> }>({ scope: "", drawn: new Set() });
@@ -140,12 +144,12 @@ export default function Spinwheel() {
     const min = parseInt(minRef.current?.value ?? "", 10);
     const max = parseInt(maxRef.current?.value ?? "", 10);
     if (Number.isNaN(min) || Number.isNaN(max))
-      return { error: 'Isi dulu angka "Dari" dan "Sampai"-nya.', min: 1, max: 100, count: 100 };
+      return { error: t('Isi dulu angka "Dari" dan "Sampai"-nya.'), min: 1, max: 100, count: 100 };
     if (min < 1 || max > 10000 || min > 10000 || max < 1)
-      return { error: "Rentang harus di dalam 1 sampai 10.000.", min: 1, max: 100, count: 100 };
-    if (min > max) return { error: 'Angka "Dari" harus lebih kecil dari "Sampai".', min: 1, max: 100, count: 100 };
+      return { error: t("Rentang harus di dalam 1 sampai 10.000."), min: 1, max: 100, count: 100 };
+    if (min > max) return { error: t('Angka "Dari" harus lebih kecil dari "Sampai".'), min: 1, max: 100, count: 100 };
     if (min === max)
-      return { error: 'Rentangnya cuma satu angka — naikin "Sampai"-nya biar seru.', min: 1, max: 100, count: 100 };
+      return { error: t('Rentangnya cuma satu angka — naikin "Sampai"-nya biar seru.'), min: 1, max: 100, count: 100 };
     return { error: null, min, max, count: max - min + 1 };
   }
 
@@ -192,7 +196,7 @@ export default function Spinwheel() {
     if (!same) poolDrawnRef.current = new Set();
     if (parsed.skipped > 0) {
       skippedRef.current = true;
-      setPoolErrorMsg(parsed.skipped + " baris dilewati (nggak ada nomornya). Cek format tiap baris: nomor - nama.");
+      setPoolErrorMsg(t("{n} baris dilewati (nggak ada nomornya). Cek format tiap baris: nomor - nama.", { n: parsed.skipped }));
     } else {
       skippedRef.current = false;
       setPoolErrorMsg("");
@@ -261,9 +265,9 @@ export default function Spinwheel() {
       ctx.fillStyle = "#7E97AC";
       ctx.font = "600 19px -apple-system, 'Segoe UI', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Isi pool tebakan dulu", cx, cy - 6);
+      ctx.fillText(t("Isi pool tebakan dulu"), cx, cy - 6);
       ctx.font = "500 14px -apple-system, 'Segoe UI', sans-serif";
-      ctx.fillText("paste nomor atau upload file .txt", cx, cy + 18);
+      ctx.fillText(t("paste nomor atau upload file .txt"), cx, cy + 18);
       ctx.restore();
     }
 
@@ -412,12 +416,8 @@ export default function Spinwheel() {
       const pool = availableNumbers(r);
       const remaining = pool ? pool.length : r.count;
       setRangeInfo(
-        fmt(r.count) +
-          " angka dalam rentang " +
-          fmt(r.min) +
-          " – " +
-          fmt(r.max) +
-          (noRepeatRef.current ? " · sisa " + fmt(remaining) : ""),
+        t("{count} angka dalam rentang {min} – {max}", { count: fmt(r.count), min: fmt(r.min), max: fmt(r.max) }) +
+          (noRepeatRef.current ? t(" · sisa {n}", { n: fmt(remaining) }) : ""),
       );
     }
     drawWheel(rotationRef.current);
@@ -429,10 +429,10 @@ export default function Spinwheel() {
     if (n < 2) {
       setPoolErrorMsg(
         n === 1
-          ? "Pool-nya baru 1 tebakan — tambahin lagi biar bisa diundi."
-          : "Isi dulu pool-nya: paste daftar tebakan atau upload file .txt.",
+          ? t("Pool-nya baru 1 tebakan — tambahin lagi biar bisa diundi.")
+          : t("Isi dulu pool-nya: paste daftar tebakan atau upload file .txt."),
       );
-      setRangeInfo(n ? "1 tebakan di pool" : "");
+      setRangeInfo(n ? t("1 tebakan di pool") : "");
     } else {
       if (!skippedRef.current) setPoolErrorMsg("");
       let left = n;
@@ -443,7 +443,9 @@ export default function Spinwheel() {
         });
       }
       setRangeInfo(
-        fmt(n) + " tebakan di pool" + (noRepeatRef.current ? " · sisa " + fmt(left) : "") + " · tiap orang peluangnya sama",
+        t("{n} tebakan di pool", { n: fmt(n) }) +
+          (noRepeatRef.current ? t(" · sisa {n}", { n: fmt(left) }) : "") +
+          t(" · tiap orang peluangnya sama"),
       );
     }
     drawPoolWheel(rotationRef.current);
@@ -471,7 +473,7 @@ export default function Spinwheel() {
       if (!noRepeatRef.current || !poolDrawnRef.current.has(i)) candidates.push(i);
     }
     if (candidates.length === 0) {
-      setPoolErrorMsg('Semua orang di pool sudah keluar. Matikan "Tanpa pengulangan" atau isi pool baru.');
+      setPoolErrorMsg(t('Semua orang di pool sudah keluar. Matikan "Tanpa pengulangan" atau isi pool baru.'));
       return;
     }
     const winIdx = candidates[randomBelow(candidates.length)];
@@ -541,7 +543,7 @@ export default function Spinwheel() {
     let target: number;
     if (pool) {
       if (pool.length === 0) {
-        setErrorMsg('Semua angka di rentang ini sudah keluar. Matikan "Tanpa pengulangan" atau ganti rentang.');
+        setErrorMsg(t('Semua angka di rentang ini sudah keluar. Matikan "Tanpa pengulangan" atau ganti rentang.'));
         return;
       }
       target = pool[randomBelow(pool.length)];
@@ -660,10 +662,10 @@ export default function Spinwheel() {
     <PublicLayout wide>
       <style>{CSS}</style>
       <h1 className="sw-h1">
-        Spin Wheel <em>Angka</em>
+        Spin Wheel <em>{t("Angka")}</em>
       </h1>
       <p className="sub">
-        Putar roda dan dapatkan angka acak dari rentang pilihanmu — dari 1 sampai 10.000. Cocok buat undian, giveaway, atau milih nomor tanpa drama.
+        {t("Putar roda dan dapatkan angka acak dari rentang pilihanmu — dari 1 sampai 10.000. Cocok buat undian, giveaway, atau milih nomor tanpa drama.")}
       </p>
 
       <div className="sw-layout">
@@ -672,7 +674,7 @@ export default function Spinwheel() {
             <div className="sw-pointer" />
             <canvas ref={canvasRef} width={600} height={600} />
             <div className="sw-hub">
-              <div className="hub-label">Hasil</div>
+              <div className="hub-label">{t("Hasil")}</div>
               <div key={resultKey} className={"hub-value" + (resultKey > 0 ? " pop" : "")}>
                 {hubValue}
               </div>
@@ -680,7 +682,7 @@ export default function Spinwheel() {
             </div>
           </div>
           <button className="btn primary sw-spin-btn" onClick={spin} disabled={spinDisabled}>
-            {spinLabel}
+            {t(spinLabel)}
           </button>
           <div className="sw-range-info">{rangeInfo}</div>
         </section>
@@ -692,39 +694,39 @@ export default function Spinwheel() {
               className={"sw-mode-btn" + (mode === "range" ? " active" : "")}
               onClick={() => setMode("range")}
             >
-              🎲 Rentang Angka
+              <Dices size={15} style={{ verticalAlign: -2 }} /> {t("Rentang Angka")}
             </button>
             <button
               type="button"
               className={"sw-mode-btn" + (mode === "pool" ? " active" : "")}
               onClick={() => setMode("pool")}
             >
-              🎁 Pool Tebakan
+              <Gift size={15} style={{ verticalAlign: -2 }} /> {t("Pool Tebakan")}
             </button>
           </div>
 
           {mode === "range" && (
             <div>
-              <h2>Atur Rentang</h2>
+              <h2>{t("Atur Rentang")}</h2>
               <div className="sw-field-row">
                 <div className="sw-field">
-                  <label htmlFor="sw-min">Dari</label>
+                  <label htmlFor="sw-min">{t("Dari")}</label>
                   <input ref={minRef} id="sw-min" type="number" min={1} max={10000} defaultValue={1} inputMode="numeric" onInput={updateRangeInfo} onChange={updateRangeInfo} />
                 </div>
                 <div className="sw-field">
-                  <label htmlFor="sw-max">Sampai</label>
+                  <label htmlFor="sw-max">{t("Sampai")}</label>
                   <input ref={maxRef} id="sw-max" type="number" min={1} max={10000} defaultValue={100} inputMode="numeric" onInput={updateRangeInfo} onChange={updateRangeInfo} />
                 </div>
               </div>
               <div className="sw-presets">
                 {[
-                  { min: 1, max: 10, label: "1–10" },
-                  { min: 1, max: 100, label: "1–100" },
-                  { min: 1, max: 1000, label: "1–1.000" },
-                  { min: 1, max: 10000, label: "1–10.000" },
+                  { min: 1, max: 10 },
+                  { min: 1, max: 100 },
+                  { min: 1, max: 1000 },
+                  { min: 1, max: 10000 },
                 ].map((p) => (
                   <button
-                    key={p.label}
+                    key={p.max}
                     type="button"
                     className="sw-preset"
                     onClick={() => {
@@ -734,7 +736,7 @@ export default function Spinwheel() {
                       updateRangeInfo();
                     }}
                   >
-                    {p.label}
+                    {"1–" + fmt(p.max)}
                   </button>
                 ))}
               </div>
@@ -744,11 +746,11 @@ export default function Spinwheel() {
 
           {mode === "pool" && (
             <div>
-              <h2>Pool Tebakan Giveaway</h2>
+              <h2>{t("Pool Tebakan Giveaway")}</h2>
               <div className="sw-pool-area">
                 <textarea
                   ref={poolInputRef}
-                  placeholder={"Paste tebakan di sini, satu baris per orang. Contoh:\n492 - MadWar\n8 - Rizky\n227 - Santony"}
+                  placeholder={t("Paste tebakan di sini, satu baris per orang. Contoh:\n492 - MadWar\n8 - Rizky\n227 - Santony")}
                   onInput={() => {
                     window.clearTimeout(poolTimerRef.current);
                     poolTimerRef.current = window.setTimeout(updatePoolInfo, 250);
@@ -763,7 +765,7 @@ export default function Spinwheel() {
                 />
                 <div className="sw-pool-actions">
                   <label className="sw-pool-btn" htmlFor="sw-pool-file">
-                    📂 Upload file .txt
+                    <Upload size={14} style={{ verticalAlign: -2 }} /> {t("Upload file .txt")}
                   </label>
                   <input
                     ref={fileRef}
@@ -794,17 +796,18 @@ export default function Spinwheel() {
                       updatePoolInfo();
                     }}
                   >
-                    Kosongkan
+                    {t("Kosongkan")}
                   </button>
                 </div>
                 <p className="sw-pool-hint">
-                  Format fleksibel: <b>nomor - nama</b> atau <b>nama nomor</b>, pisah spasi/koma juga bisa. Nomor yang sama boleh dipakai banyak orang — yang diundi itu orangnya.
+                  {t("Format fleksibel:")} <b>{t("nomor - nama")}</b>{t(" atau ")}<b>{t("nama nomor")}</b>{t(", pisah spasi/koma juga bisa. Nomor yang sama boleh dipakai banyak orang — yang diundi itu orangnya.")}
                 </p>
                 {poolEntries.length > 0 && (
                   <div className="sw-pool-list">
                     <div className="sw-pool-list-head">
                       <span>
-                        {poolEntries.length} tebakan di pool{noRepeat ? " · sisa " + poolRemaining : ""}
+                        {t("{n} tebakan di pool", { n: poolEntries.length })}
+                        {noRepeat ? t(" · sisa {n}", { n: poolRemaining }) : ""}
                       </span>
                     </div>
                     <div className="sw-pool-scroll">
@@ -815,7 +818,7 @@ export default function Spinwheel() {
                             {e.name ? " · " : ""}
                             {e.name && <span className="nm">{e.name}</span>}
                           </span>
-                          <button type="button" title="Hapus dari pool" onClick={() => removePoolEntry(i)}>
+                          <button type="button" title={t("Hapus dari pool")} onClick={() => removePoolEntry(i)}>
                             ×
                           </button>
                         </span>
@@ -840,12 +843,12 @@ export default function Spinwheel() {
             />
             <span>
               {mode === "pool"
-                ? "Tanpa pengulangan (yang sudah menang tidak ikut lagi)"
-                : "Tanpa pengulangan (angka yang sudah keluar tidak ikut lagi)"}
+                ? t("Tanpa pengulangan (yang sudah menang tidak ikut lagi)")
+                : t("Tanpa pengulangan (angka yang sudah keluar tidak ikut lagi)")}
             </span>
           </label>
           <div className="sw-sound-row">
-            <span>Suara putaran</span>
+            <span>{t("Suara putaran")}</span>
             <label className="sw-switch">
               <input
                 type="checkbox"
@@ -861,7 +864,7 @@ export default function Spinwheel() {
 
           <div className="sw-history">
             <div className="sw-history-head">
-              <h2>Riwayat</h2>
+              <h2>{t("Riwayat")}</h2>
               <button
                 type="button"
                 className="sw-clear-btn"
@@ -875,12 +878,12 @@ export default function Spinwheel() {
                   updateDisplay();
                 }}
               >
-                Bersihkan
+                {t("Bersihkan")}
               </button>
             </div>
             <div className="sw-chips">
               {history.length === 0 ? (
-                <span className="sw-empty-history">Belum ada hasil. Putar rodanya!</span>
+                <span className="sw-empty-history">{t("Belum ada hasil. Putar rodanya!")}</span>
               ) : (
                 history.map((h, i) => (
                   <span className="sw-chip" key={i}>
@@ -893,7 +896,7 @@ export default function Spinwheel() {
         </aside>
       </div>
 
-      <p className="sw-foot-note">Angka dipilih secara acak murni di browser kamu — tidak ada yang diatur-atur.</p>
+      <p className="sw-foot-note">{t("Angka dipilih secara acak murni di browser kamu — tidak ada yang diatur-atur.")}</p>
     </PublicLayout>
   );
 }

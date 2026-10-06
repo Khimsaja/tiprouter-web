@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/DashLayout";
 import { api, type KeyItem } from "../lib/api";
+import { useLang } from "../lib/i18n";
 
 type KeysData = { keys: KeyItem[]; reason?: string };
 
@@ -35,17 +36,20 @@ function pickPrimaryKey(keys: KeyItem[]) {
 }
 
 function ReasonMsg({ reason }: { reason?: string }) {
+  const { t } = useLang();
   if (reason === "telegram_not_connected")
     return (
       <p>
-        Belum ada key yang ketemu buat akun ini. <Link to="/beli">Beli API key</Link> lewat web langsung keluar, atau
-        hubungkan Telegram di menu Profil kalau key kamu dari bot.
+        {t("Belum ada key yang ketemu buat akun ini.")}{" "}
+        <Link to="/beli">{t("Beli API key")}</Link>{" "}
+        {t("lewat web langsung keluar, atau hubungkan Telegram di menu Profil kalau key kamu dari bot.")}
       </p>
     );
-  return <p>Data key belum bisa diambil sekarang. Coba muat ulang halamannya sebentar lagi.</p>;
+  return <p>{t("Data key belum bisa diambil sekarang. Coba muat ulang halamannya sebentar lagi.")}</p>;
 }
 
 export default function Models() {
+  const { t } = useLang();
   const data = useKeys();
   const reason = data?.reason;
   const keys = data?.keys ?? [];
@@ -53,11 +57,11 @@ export default function Models() {
 
   let body: ReactNode;
   if (!data) {
-    body = <p>Mengambil daftar model.</p>;
+    body = <p>{t("Mengambil daftar model.")}</p>;
   } else if (reason) {
     body = <ReasonMsg reason={reason} />;
   } else if (!primary) {
-    body = <p>Belum ada key, jadi belum ada daftar model.</p>;
+    body = <p>{t("Belum ada key, jadi belum ada daftar model.")}</p>;
   } else if (primary.models && primary.models.length > 0) {
     body = (
       <>
@@ -69,23 +73,24 @@ export default function Models() {
           ))}
         </div>
         <p className="muted" style={{ marginTop: 12 }}>
-          Total {primary.models.length} model dari key utama kamu{keys.length > 1 ? " (kamu punya " + keys.length + " key)" : ""}.
+          {t("Total {n} model dari key utama kamu", { n: primary.models.length })}
+          {keys.length > 1 ? t(" (kamu punya {n} key)", { n: keys.length }) : ""}.
         </p>
       </>
     );
   } else if (primary.modelAccessMode && primary.modelAccessMode !== "whitelist") {
-    body = <p>Key kamu bisa manggil semua model yang tersedia di TipRouter.</p>;
+    body = <p>{t("Key kamu bisa manggil semua model yang tersedia di TipRouter.")}</p>;
   } else {
-    body = <p>Daftar model buat key ini belum kebaca. Coba muat ulang halamannya.</p>;
+    body = <p>{t("Daftar model buat key ini belum kebaca. Coba muat ulang halamannya.")}</p>;
   }
 
   return (
     <>
       <style>{PAGE_STYLE}</style>
-      <PageHead title="Model" sub="Model yang bisa kamu panggil pakai key kamu." />
+      <PageHead title={t("Model")} sub={t("Model yang bisa kamu panggil pakai key kamu.")} />
       <div className="card" style={{ marginTop: 20 }}>
-        <h2>Model yang bisa kamu pakai</h2>
-        <p>Daftar ini ngikutin paket/template key kamu. Panggil persis pakai nama di bawah.</p>
+        <h2>{t("Model yang bisa kamu pakai")}</h2>
+        <p>{t("Daftar ini ngikutin paket/template key kamu. Panggil persis pakai nama di bawah.")}</p>
         <div>{body}</div>
       </div>
     </>

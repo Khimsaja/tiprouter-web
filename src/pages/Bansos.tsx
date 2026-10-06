@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Gift } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
+import Turnstile, { type TurnstileHandle } from "../components/Turnstile";
 import { useSession } from "../lib/session";
-import { api, type GachaState } from "../lib/api";
+import { api, type Config, type GachaState } from "../lib/api";
+import { localeTag, useLang } from "../lib/i18n";
 
 type Claimed = Extract<GachaState, { claimed: true }>;
 
@@ -22,6 +25,7 @@ const SPIN_ERR: Record<string, string> = {
   mint_failed: "Key gagal dibuat, coba lagi sebentar.",
   gacha_off: "Gacha lagi belum aktif, coba sebentar lagi.",
   unauthorized: "Sesi habis, login lagi ya.",
+  turnstile_failed: "Verifikasi anti-bot gagal. Selesaikan verifikasinya, lalu coba lagi.",
 };
 
 function fmtRemain(sec: number) {
@@ -85,6 +89,7 @@ const CSS = `
 
 export default function Bansos() {
   const { me: user, loading: sessionLoading } = useSession();
+  const { t } = useLang();
   const [checking, setChecking] = useState(false);
   const [ipUsed, setIpUsed] = useState(false);
   const [result, setResult] = useState<Claimed | null>(null);
@@ -93,8 +98,15 @@ export default function Bansos() {
   const [err, setErr] = useState("");
   const [copyLabel, setCopyLabel] = useState("Salin Key");
   const [remainSec, setRemainSec] = useState<number | null>(null);
+  const [cfg, setCfg] = useState<Config | null>(null);
+  const [tsToken, setTsToken] = useState<string | null>(null);
+  const tsRef = useRef<TurnstileHandle>(null);
   const timers = useRef<number[]>([]);
   const copyTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    api.config().then(setCfg).catch(() => {});
+  }, []);
 
   useEffect(
     () => () => {
@@ -156,7 +168,7 @@ export default function Bansos() {
     setSpinning(true);
     setErr("");
     try {
-      const d = await api.gachaSpin();
+      const d = await api.gachaSpin(tsToken);
       if (!d.claimed) throw Object.assign(new Error("unexpected"), { code: "" });
       animateTo(d.durationHours, () => {
         setSpinning(false);
@@ -164,6 +176,7 @@ export default function Bansos() {
       });
     } catch (e) {
       setSpinning(false);
+      tsRef.current?.reset();
       if (e instanceof TypeError) {
         setErr("Jaringan bermasalah, coba lagi.");
       } else {
@@ -189,34 +202,34 @@ export default function Bansos() {
     <PublicLayout wide>
       <style>{CSS}</style>
       <div className="bn-badge">
-        <span className="pulse" /> Gacha Bansos — 1x putaran gratis per akun
+        <span className="pulse" /> {t("Gacha Bansos — 1x putaran gratis per akun")}
       </div>
       <h1 className="bn-h1">
         Gacha <em>Bansos</em>
       </h1>
       <p className="bn-sub">
-        Putar sekali, dapet <b>API key pribadi gratis</b> — unlimited token, semua model buyer, durasinya acak{" "}
-        <b>1 sampai 24 jam</b>. Nggak ada key bersama lagi; key hasil gacha nempel ke akun kamu sendiri.
+        {t("Putar sekali, dapet")} <b>{t("API key pribadi gratis")}</b> — {t("unlimited token, semua model buyer, durasinya acak")}{" "}
+        <b>{t("1 sampai 24 jam")}</b>{t(". Nggak ada key bersama lagi; key hasil gacha nempel ke akun kamu sendiri.")}
       </p>
 
       <div className="bn-grid">
         <section className="card bn-card bn-full">
-          <h2>Mesin Gacha</h2>
+          <h2>{t("Mesin Gacha")}</h2>
           <p className="bn-note" style={{ marginTop: 0 }}>
-            Enam tingkat hadiah, peluangnya terbuka apa adanya:
+            {t("Enam tingkat hadiah, peluangnya terbuka apa adanya:")}
           </p>
           <div className="bn-tiers">
-            {TIER_ODDS.map((t, i) => {
+            {TIER_ODDS.map((tier, i) => {
               const cls =
                 "bn-tier" +
-                (t.h === 24 ? " jackpot" : "") +
+                (tier.h === 24 ? " jackpot" : "") +
                 (lit === i ? " lit" : "") +
-                (result && result.durationHours === t.h ? " win" : "");
+                (result && result.durationHours === tier.h ? " win" : "");
               return (
-                <div className={cls} key={t.h}>
-                  <p className="h">{t.h}</p>
-                  <p className="u">{t.h === 24 ? "jam · jackpot" : "jam"}</p>
-                  <p className="p">peluang {t.p}</p>
+                <div className={cls} key={tier.h}>
+                  <p className="h">{tier.h}</p>
+                  <p className="u">{tier.h === 24 ? t("jam · jackpot") : t("jam")}</p>
+                  <p className="p">{t("peluang {p}", { p: tier.p })}</p>
                 </div>
               );
             })}
@@ -225,115 +238,118 @@ export default function Bansos() {
           {!result ? (
             <div className="bn-spin">
               {sessionLoading ? (
-                <p className="muted">Ngecek sesi kamu…</p>
+                <p className="muted">{t("Ngecek sesi kamu…")}</p>
               ) : !user ? (
                 <>
                   <Link className="btn primary" to="/login">
-                    Masuk buat Muter Gacha
+                    {t("Masuk buat Muter Gacha")}
                   </Link>
                   <p className="muted">
-                    Login pakai Google, GitHub, atau API key yang udah kamu punya. Gratis, tanpa bayar, tanpa daftar
-                    ribet.
+                    {t("Login pakai Google, GitHub, atau API key yang udah kamu punya. Gratis, tanpa bayar, tanpa daftar ribet.")}
                   </p>
                 </>
               ) : (
                 <>
-                  <button className="btn primary" type="button" disabled={spinning || ipUsed || checking} onClick={spin}>
-                    {spinning ? "Lagi muter…" : checking ? "Ngecek jatah…" : "🎁 Putar Gacha"}
+                  {cfg?.turnstileSiteKey ? <Turnstile ref={tsRef} siteKey={cfg.turnstileSiteKey} onToken={setTsToken} /> : null}
+                  <button className="btn primary" type="button" disabled={spinning || ipUsed || checking || (!!cfg?.turnstileSiteKey && !tsToken)} onClick={spin}>
+                    {spinning ? t("Lagi muter…") : checking ? t("Ngecek jatah…") : (<><Gift size={17} /> {t("Putar Gacha")}</>)}
                   </button>
                   <p className="muted">
                     {ipUsed
-                      ? "IP ini udah pernah dipakai gacha. Satu IP cuma boleh 1x, biar nggak diternak bot."
-                      : "Sekali seumur akun. Hasilnya ditentukan server, bukan keberuntungan browser."}
+                      ? t("IP ini udah pernah dipakai gacha. Satu IP cuma boleh 1x, biar nggak diternak bot.")
+                      : t("Sekali seumur akun. Hasilnya ditentukan server, bukan keberuntungan browser.")}
                   </p>
                 </>
               )}
             </div>
           ) : null}
           <p className={"err" + (err ? " show" : "")} style={{ textAlign: "center" }}>
-            {err}
+            {t(err)}
           </p>
         </section>
 
         {result ? (
           <section className="card bn-card bn-full">
             <h2>
-              {result.durationHours >= 24 ? "JACKPOT! Key gacha kamu (24 jam)" : "Key gacha kamu (" + result.durationHours + " jam)"}
+              {result.durationHours >= 24
+                ? t("JACKPOT! Key gacha kamu ({hours} jam)", { hours: 24 })
+                : t("Key gacha kamu ({hours} jam)", { hours: result.durationHours })}
             </h2>
             <p>
-              <span className={"bn-pill " + (expired ? "exp" : "ok")}>{expired ? "Habis" : "Aktif"}</span>
+              <span className={"bn-pill " + (expired ? "exp" : "ok")}>{expired ? t("Habis") : t("Aktif")}</span>
             </p>
             <div className="bn-keybox">{result.key}</div>
             <div className="bn-btns">
               <button className="btn primary" type="button" onClick={copyKey}>
-                {copyLabel}
+                {t(copyLabel)}
               </button>
               <Link className="btn" to="/dashboard/keys">
-                Lihat di API Keys
+                {t("Lihat di API Keys")}
               </Link>
             </div>
             <p className="muted bn-center" style={{ marginTop: 16 }}>
-              Sisa masa aktif
+              {t("Sisa masa aktif")}
             </p>
             <p className="bn-remain">{remainSec === null ? "--:--:--" : fmtRemain(remainSec)}</p>
             <p className="muted bn-center">
-              Berlaku sampai {new Date(result.expiresAt).toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}.
+              {t("Berlaku sampai {date}.", {
+                date: new Date(result.expiresAt).toLocaleString(localeTag(), { dateStyle: "long", timeStyle: "short" }),
+              })}
             </p>
             <p className="bn-note">
-              Base URL: <span className="mono">https://tiprouter.my.id/v1</span> · format OpenAI. Key berhenti sendiri
-              pas sisa waktunya habis.
+              Base URL: <span className="mono">https://tiprouter.my.id/v1</span> ·{" "}
+              {t("format OpenAI. Key berhenti sendiri pas sisa waktunya habis.")}
             </p>
           </section>
         ) : null}
 
         <section className="card bn-card">
-          <h2>Cara Main</h2>
+          <h2>{t("Cara Main")}</h2>
           <div className="bn-steps">
             <div className="bn-step">
               <span className="n">1</span>
               <p>
-                <b>Masuk dulu</b> — pakai Google, GitHub, atau API key TipRouter yang udah kamu punya.
+                <b>{t("Masuk dulu")}</b> {t("— pakai Google, GitHub, atau API key TipRouter yang udah kamu punya.")}
               </p>
             </div>
             <div className="bn-step">
               <span className="n">2</span>
               <p>
-                <b>Putar gacha</b> — satu kali putaran, server yang nentuin dapet berapa jam (1–24 jam).
+                <b>{t("Putar gacha")}</b> {t("— satu kali putaran, server yang nentuin dapet berapa jam (1–24 jam).")}
               </p>
             </div>
             <div className="bn-step">
               <span className="n">3</span>
               <p>
-                <b>Colok key-nya</b> — base URL <b>tiprouter.my.id/v1</b>, isi key hasil gacha, pilih model apa aja.
+                <b>{t("Colok key-nya")}</b> {t("— base URL")} <b>tiprouter.my.id/v1</b>{t(", isi key hasil gacha, pilih model apa aja.")}
               </p>
             </div>
           </div>
         </section>
 
         <section className="card bn-card">
-          <h2>Aturan Main</h2>
+          <h2>{t("Aturan Main")}</h2>
           <ul className="bn-rules">
             <li>
-              Tiap akun cuma bisa gacha <b>1x</b> — tercatat per akun <b>dan</b> per IP di server, nggak bisa diakalin
-              refresh.
+              {t("Tiap akun cuma bisa gacha")} <b>1x</b> {t("— tercatat per akun")} <b>{t("dan")}</b>{" "}
+              {t("per IP di server, nggak bisa diakalin refresh.")}
             </li>
             <li>
-              Key gacha itu <b>key pribadi</b>: unlimited token, semua model paket berbayar, mati sendiri pas durasinya
-              habis.
+              {t("Key gacha itu")} <b>{t("key pribadi")}</b>{t(": unlimited token, semua model paket berbayar, mati sendiri pas durasinya habis.")}
             </li>
-            <li>Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.</li>
+            <li>{t("Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.")}</li>
             <li>
-              Habis masa gacha dan mau lanjut tanpa putus? <Link to="/beli">Paket TipRouter</Link> mulai Rp3.000, key
-              langsung aktif.
+              {t("Habis masa gacha dan mau lanjut tanpa putus?")} <Link to="/beli">{t("Paket TipRouter")}</Link>{" "}
+              {t("mulai Rp3.000, key langsung aktif.")}
             </li>
           </ul>
         </section>
       </div>
 
       <p className="bn-foot-note">
-        Gacha Bansos adalah program gratis dari <Link to="/">TipRouter</Link> — satu putaran, satu key.
+        {t("Gacha Bansos adalah program gratis dari")} <Link to="/">TipRouter</Link> {t("— satu putaran, satu key.")}
         <br />
-        Peluang tiap tingkat tampil apa adanya; hasil ditentukan server secara acak.
+        {t("Peluang tiap tingkat tampil apa adanya; hasil ditentukan server secara acak.")}
       </p>
     </PublicLayout>
   );

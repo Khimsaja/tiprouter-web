@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Send } from "lucide-react";
 import { useSession } from "../lib/session";
+import { LanguageToggle, useLang } from "../lib/i18n";
 
 function ThemeToggle() {
+  const { t } = useLang();
   const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "dark");
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     try { localStorage.setItem("tiprouter-theme", theme); } catch { /* ignore */ }
   }, [theme]);
   return (
-    <button className="theme-toggle" aria-label="Ganti tema gelap / terang" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+    <button className="theme-toggle" aria-label={t("Ganti tema gelap / terang")} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
       {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
     </button>
   );
@@ -18,6 +20,7 @@ function ThemeToggle() {
 
 export function SiteHeader() {
   const { me } = useSession();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,27 +37,34 @@ export function SiteHeader() {
     <header className="site">
       <div className="nav">
         <Link className="brand" to="/">
-          <img src="/logo-icon.png" alt="Logo TipRouter" />
-          TipRouter
+          <img src="/logo-icon.png" alt={t("Logo TipRouter")} />
+          <span className="brand-txt">TipRouter</span>
         </Link>
-        <button className="burger" aria-label="Buka menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button className="burger" aria-label={t("Buka menu")} aria-expanded={open} onClick={() => setOpen(!open)}>
           <span /><span /><span />
         </button>
         <nav className={"main" + (open ? " open" : "")}>
-          <a href="/#model" onClick={anchor("#model")}>Model</a>
-          <a href="/#harga" onClick={anchor("#harga")}>Harga</a>
+          <a href="/#model" onClick={anchor("#model")}>{t("Model")}</a>
+          <a href="/#harga" onClick={anchor("#harga")}>{t("Harga")}</a>
           <NavLink to="/bansos" onClick={() => setOpen(false)}>Bansos</NavLink>
-          <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>Cara Pakai</a>
+          <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
+          <NavLink to="/playground" onClick={() => setOpen(false)}>Playground</NavLink>
+          <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
-          <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>Akun Saya</NavLink>
-          <NavLink to="/beli" className="mnav-cta" onClick={() => setOpen(false)}>Beli Sekarang</NavLink>
+          <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
+          <NavLink to="/beli" className="mnav-cta" onClick={() => setOpen(false)}>{t("Beli Sekarang")}</NavLink>
+          <div className="mnav-lang">
+            <span>{t("Bahasa")}</span>
+            <LanguageToggle />
+          </div>
         </nav>
         {me ? (
           <Link className="btn sm" to="/dashboard">Dashboard</Link>
         ) : (
-          <Link className="btn sm" to="/login">Masuk</Link>
+          <Link className="btn sm" to="/login">{t("Masuk")}</Link>
         )}
-        <Link className="btn primary sm" to="/beli">Beli Sekarang</Link>
+        <Link className="btn primary sm" to="/beli">{t("Beli Sekarang")}</Link>
+        <LanguageToggle />
         <ThemeToggle />
       </div>
     </header>
@@ -62,14 +72,27 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
+  const { t } = useLang();
   return (
     <footer className="site">
       <div className="foot">
         <span className="foot-brand">
-          <img src="/logo-icon.png" alt="Logo TipRouter" />
-          <span><strong>TipRouter</strong> — API key AI unlimited dari Indonesia.</span>
+          <img src="/logo-icon.png" alt={t("Logo TipRouter")} />
+          <span><strong>TipRouter</strong> — {t("API key AI unlimited dari Indonesia.")}</span>
         </span>
         <code>https://tiprouter.my.id/v1</code>
+        <Link to="/syarat" style={{ textDecoration: "underline" }}>
+          {t("Syarat & Ketentuan")}
+        </Link>
+        <a
+          href="https://t.me/hermestele"
+          target="_blank"
+          rel="noopener"
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "underline" }}
+        >
+          <Send size={13} />
+          {t("Hubungi Admin")}
+        </a>
         <span className="right">© 2026 TipRouter</span>
       </div>
     </footer>

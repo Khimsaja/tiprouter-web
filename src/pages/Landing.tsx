@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PublicLayout } from "../components/chrome";
+import { localeTag, tr, useLang } from "../lib/i18n";
 
 const CSS = `
+.ld-refbar{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px;font-size:13.5px;color:var(--mut);margin-bottom:14px;line-height:1.5}
+.ld-refbar b{color:var(--txt)}
+.ld-refbar .tag{background:#fff;color:#000;font-weight:800;font-size:11px;padding:3px 9px;border-radius:99px;letter-spacing:.06em;flex-shrink:0;margin-top:1px}
 .ld-hero{padding:22px 0 4px}
 .ld-hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:start}
 .ld-hero-grid>*{min-width:0}
@@ -143,20 +147,26 @@ const CSS = `
 }
 `;
 
-const MODELS = [
-  { id: "deepseek-v4-flash", fam: "DeepSeek", note: "Model andalan untuk coding dan chat. Cepat, pintar, dan stabil untuk pemakaian harian yang berat." },
-  { id: "deepseek-v-4.1-flash", fam: "DeepSeek", note: "Generasi 4.1, reasoning lebih rapi." },
-  { id: "qwen3.8-flash", fam: "Qwen", note: "Ringan, respons kilat, enak buat otomasi." },
-  { id: "glm-5-3-flash", fam: "GLM", note: "Kuat di bahasa dan tugas umum." },
-  { id: "mimo-v2.5", fam: "MiMo", note: "Seimbang untuk chat dan penalaran." },
-  { id: "mimo-v2.6-flash", fam: "MiMo", note: "Varian flash, latensi rendah." },
-  { id: "muse-spark-1.3", fam: "Meta", note: "Model cepat untuk tugas kreatif." },
-  { id: "longcat-2.5-preview", fam: "LongCat", note: "Konteks panjang untuk dokumen besar." },
-  { id: "fledge-alpha", fam: "Fledge", note: "Model eksperimental, serba bisa." },
-  { id: "jev-1.13", fam: "JEV", note: "Ringan untuk integrasi cepat." },
-  { id: "space-bunny", fam: "Space", note: "Karakter santai untuk chat kasual." },
-  { id: "hy4-preview", fam: "HY", note: "Preview generasi terbaru." },
-];
+// fam/note marketing per model; the ID list itself is fetched live from the
+// 'tiprouter new' template via /api/template-models (FALLBACK_MODELS if offline).
+const MODEL_META: Record<string, { fam: string; note: string }> = {
+  "deepseek-v-4.1-flash": { fam: "DeepSeek", note: "Generasi 4.1, reasoning lebih rapi." },
+  "deepseek-v4.1-flash": { fam: "DeepSeek", note: "Varian 4.1 yang cepat dan stabil buat pemakaian harian." },
+  "fledge-alpha": { fam: "Fledge", note: "Model eksperimental, serba bisa." },
+  "gemini-3.8-flash": { fam: "Gemini", note: "Generasi Gemini terbaru, cepat dan serba bisa." },
+  "glm-5-3-flash": { fam: "GLM", note: "Kuat di bahasa dan tugas umum." },
+  "gpt-6-luna": { fam: "GPT", note: "Flagship generasi terbaru, paling pintar." },
+  "hy4-preview": { fam: "HY", note: "Preview generasi terbaru." },
+  "jev-1.13": { fam: "JEV", note: "Ringan untuk integrasi cepat." },
+  "ling-3.1-flash": { fam: "Ling", note: "Ringan dan responsif buat chat harian." },
+  "longcat-2.5-preview": { fam: "LongCat", note: "Konteks panjang untuk dokumen besar." },
+  "mimo-v2.5": { fam: "MiMo", note: "Seimbang untuk chat dan penalaran." },
+  "mimo-v2.6.flash": { fam: "MiMo", note: "Varian flash, latensi rendah." },
+  "muse-spark-1.3": { fam: "Meta", note: "Model cepat untuk tugas kreatif." },
+  "qwen-3.8-27b": { fam: "Qwen", note: "Ringan, respons kilat, enak buat otomasi." },
+  "space-bunny": { fam: "Space", note: "Karakter santai untuk chat kasual." },
+};
+const FALLBACK_MODELS = Object.keys(MODEL_META);
 
 type LogEntry = { m: string; ms: number; tok: number; t: number };
 
@@ -212,12 +222,12 @@ const LIVE_LOGS: LogEntry[] = [
   { m: "qwen3.8-uncensored", ms: 2699, tok: 1, t: 1791037855 },
 ];
 
-const fmtID = (n: number) => n.toLocaleString("id-ID");
+const fmtID = (n: number) => n.toLocaleString(localeTag());
 const fmtCompact = (n: number) =>
   n >= 1e6
-    ? (n / 1e6).toFixed(1).replace(".", ",") + " jt"
+    ? (n / 1e6).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" jt")
     : n >= 1e3
-      ? (n / 1e3).toFixed(1).replace(".", ",") + " rb"
+      ? (n / 1e3).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" rb")
       : String(n);
 
 const MAX_ROWS = 7;
@@ -226,22 +236,23 @@ type LiveRow = { e: LogEntry; shownAt: number; key: number };
 
 function ageText(shownAt: number) {
   const s = Math.max(0, Math.round((Date.now() - shownAt) / 1000));
-  if (s < 5) return "baru saja";
-  if (s < 60) return s + " dtk lalu";
+  if (s < 5) return tr("baru saja");
+  if (s < 60) return tr("{n} dtk lalu", { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return m + " mnt lalu";
-  return Math.floor(m / 60) + " jam lalu";
+  if (m < 60) return tr("{n} mnt lalu", { n: m });
+  return tr("{n} jam lalu", { n: Math.floor(m / 60) });
 }
 
 function CopyBaseUrlBtn() {
+  const { t } = useLang();
   const [label, setLabel] = useState("Copy");
   const timer = useRef<number | undefined>(undefined);
   const onClick = async () => {
     try {
       await navigator.clipboard.writeText("https://tiprouter.my.id/v1");
-      setLabel("Tersalin");
+      setLabel(t("Tersalin"));
     } catch {
-      setLabel("Gagal");
+      setLabel(t("Gagal"));
     }
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setLabel("Copy"), 1600);
@@ -254,6 +265,7 @@ function CopyBaseUrlBtn() {
 }
 
 function StatsCard() {
+  const { t, lang } = useLang();
   const metrics = useMemo(() => {
     const totalTok = LIVE_LOGS.reduce((a, e) => a + e.tok, 0);
     const usedModels = new Set(LIVE_LOGS.map((e) => e.m)).size;
@@ -283,10 +295,10 @@ function StatsCard() {
       requests: fmtID(LIVE_LOGS.length),
       tokens: fmtCompact(totalTok),
       models: String(usedModels),
-      median: (median / 1000).toFixed(1).replace(".", ",") + " dtk",
+      median: (median / 1000).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + t(" dtk"),
       top,
     };
-  }, []);
+  }, [lang]);
 
   const [rows, setRows] = useState<LiveRow[]>(() => {
     const t0 = Math.max(...LIVE_LOGS.map((e) => e.t));
@@ -323,28 +335,28 @@ function StatsCard() {
           <span className="dot" />
           Stats &amp; Activity
         </span>
-        <span className="r">telemetri produksi</span>
+        <span className="r">{t("telemetri produksi")}</span>
       </div>
       <div className="ld-metrics">
         <div className="ld-metric">
           <p className="k">Requests</p>
           <p className="v">{metrics.requests}</p>
-          <p className="s">request sukses terakhir</p>
+          <p className="s">{t("request sukses terakhir")}</p>
         </div>
         <div className="ld-metric">
           <p className="k">Tokens</p>
           <p className="v">{metrics.tokens}</p>
-          <p className="s">output terukur</p>
+          <p className="s">{t("output terukur")}</p>
         </div>
         <div className="ld-metric">
           <p className="k">Models Used</p>
           <p className="v">{metrics.models}</p>
-          <p className="s">dari 12 model</p>
+          <p className="s">{t("dari 12 model")}</p>
         </div>
         <div className="ld-metric">
           <p className="k">Median</p>
           <p className="v">{metrics.median}</p>
-          <p className="s">detik per respons</p>
+          <p className="s">{t("detik per respons")}</p>
         </div>
       </div>
       <div className="ld-topmodels">
@@ -365,7 +377,7 @@ function StatsCard() {
           ))}
         </div>
       </div>
-      <ul className="ld-live-list" aria-label="Log request sukses terbaru">
+      <ul className="ld-live-list" aria-label={t("Log request sukses terbaru")}>
         {rows.map((r, i) => (
           <li className={"ld-live-row" + (i === 0 && r.key >= MAX_ROWS ? " enter" : "")} key={r.key}>
             <span className="ld-live-check">
@@ -375,7 +387,7 @@ function StatsCard() {
             </span>
             <span className="ld-live-model">{r.e.m}</span>
             <span className="ld-live-meta">
-              {(r.e.ms / 1000).toFixed(1).replace(".", ",") + " dtk"}{" "}
+              {(r.e.ms / 1000).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + t(" dtk")}{" "}
               <span className="tok">· {fmtID(r.e.tok)} token</span>
             </span>
             <span className="ld-live-ok">200 OK</span>
@@ -391,7 +403,7 @@ function StatsCard() {
         <span className="r">tiprouter.my.id</span>
       </div>
       <p className="ld-stats-note">
-        Diambil dari telemetri produksi TipRouter (dianonimkan — nama pengguna dan isi chat tidak pernah ditampilkan). Latensi = waktu sampai respons selesai.
+        {t("Diambil dari telemetri produksi TipRouter (dianonimkan — nama pengguna dan isi chat tidak pernah ditampilkan). Latensi = waktu sampai respons selesai.")}
       </p>
     </div>
   );
@@ -459,7 +471,32 @@ const FAQS = [
 ];
 
 export default function Landing() {
+  const { t } = useLang();
   const rootRef = useRef<HTMLDivElement>(null);
+  const [refCode] = useState<string | null>(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get("ref");
+      if (q && /^[A-Za-z0-9]{4,16}$/.test(q)) return q.toUpperCase();
+      return localStorage.getItem("tr_ref");
+    } catch { return null; }
+  });
+
+  // Model IDs come live from the 'tiprouter new' template; fallback if the API is unreachable.
+  const [modelIds, setModelIds] = useState<string[]>(FALLBACK_MODELS);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/template-models")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d && Array.isArray(d.models) && d.models.length > 0) {
+          setModelIds(d.models.filter((x: unknown) => typeof x === "string"));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Scroll to the section named by location.hash on mount (e.g. arriving from /#harga).
   useEffect(() => {
@@ -491,6 +528,12 @@ export default function Landing() {
 
   return (
     <PublicLayout wide>
+      {refCode && (
+        <div className="ld-refbar">
+          <span className="tag">{t("Referral")}</span>
+          <span>{t("Kamu diundang teman")} <b>{refCode}</b> — {t("daftar dan beli paket, kalian berdua dapat bonus hari.")}</span>
+        </div>
+      )}
       <style>{CSS}</style>
       <div ref={rootRef}>
         <div className="ld-hero">
@@ -500,36 +543,36 @@ export default function Landing() {
                 TipRouter / <b>Community API</b>
               </p>
               <h1 className="ld-h1">
-                Satu key, semua model, <em>tanpa batas token.</em>
+                {t("Satu key, semua model,")} <em>{t("tanpa batas token.")}</em>
               </h1>
               <p className="ld-sub">
-                Bayar sekali untuk masa aktif 1 sampai 30 hari, lalu pakai semua model AI sepuasnya. Tanpa hitung token, tanpa kartu kredit.
+                {t("Bayar sekali untuk masa aktif 1 sampai 30 hari, lalu pakai semua model AI sepuasnya. Tanpa hitung token, tanpa kartu kredit.")}
               </p>
               <div className="ld-hero-cta">
                 <Link className="btn primary" to="/beli">
-                  Beli Sekarang
+                  {t("Beli Sekarang")}
                 </Link>
                 <a className="btn" href="#model">
-                  Lihat Model
+                  {t("Lihat Model")}
                 </a>
               </div>
-              <p className="ld-hero-note">Satu key untuk semua model. Pool bersama untuk developer Indonesia.</p>
+              <p className="ld-hero-note">{t("Satu key untuk semua model. Coba gratis dulu lewat gacha bansos.")}</p>
               <div className="ld-hero-stats">
                 <div>
                   <p className="n">12</p>
-                  <p className="l">model AI aktif</p>
+                  <p className="l">{t("model AI aktif")}</p>
                 </div>
                 <div>
                   <p className="n">150</p>
-                  <p className="l">request per menit</p>
+                  <p className="l">{t("request per menit")}</p>
                 </div>
                 <div>
-                  <p className="n">1 mnt</p>
-                  <p className="l">key langsung aktif</p>
+                  <p className="n">{t("1 mnt")}</p>
+                  <p className="l">{t("key langsung aktif")}</p>
                 </div>
                 <div>
                   <p className="n">QRIS</p>
-                  <p className="l">dan e-wallet</p>
+                  <p className="l">{t("dan e-wallet")}</p>
                 </div>
               </div>
             </div>
@@ -549,17 +592,17 @@ export default function Landing() {
           <div className="fact">
             <p className="k">Remaining</p>
             <p className="v">Unlimited</p>
-            <p className="s">selama masa aktif key kamu</p>
+            <p className="s">{t("selama masa aktif key kamu")}</p>
           </div>
           <div className="fact">
             <p className="k">Models</p>
-            <p className="v">12 model</p>
-            <p className="s">semua terbuka di setiap paket</p>
+            <p className="v">{t("12 model")}</p>
+            <p className="s">{t("semua terbuka di setiap paket")}</p>
           </div>
           <div className="fact">
             <p className="k">Fair Use</p>
-            <p className="v">150 req/mnt</p>
-            <p className="s">per key, biar pool enak dipakai semua</p>
+            <p className="v">{t("150 req/mnt")}</p>
+            <p className="s">{t("per key, biar pool enak dipakai semua")}</p>
           </div>
         </div>
 
@@ -568,69 +611,72 @@ export default function Landing() {
             <div>
               <p className="ld-label">Available Models</p>
               <h2 className="ld-sec">
-                12 model, <em>satu key.</em>
+                {t("{n} model,", { n: modelIds.length })} <em>{t("satu key.")}</em>
               </h2>
               <p className="ld-lead">
-                Tidak ada tier model. Semua key membuka semua model di bawah ini, dari yang paling ringan sampai yang paling pintar.
+                {t("Tidak ada tier model. Semua key membuka semua model di bawah ini, dari yang paling ringan sampai yang paling pintar.")}
               </p>
             </div>
           </div>
           <div className="ld-model-grid">
-            {MODELS.map((m) => (
-              <article className="card ld-model-card reveal" key={m.id}>
-                <div className="top">
-                  <span className="fam">{m.fam}</span>
-                  <span className="ld-mchip">
-                    <i />
-                    Available
-                  </span>
-                </div>
-                <h3>{m.id}</h3>
-                <p>{m.note}</p>
-              </article>
-            ))}
+            {modelIds.map((id) => {
+              const meta = MODEL_META[id] ?? { fam: id.split("-")[0].toUpperCase(), note: "" };
+              return (
+                <article className="card ld-model-card reveal" key={id}>
+                  <div className="top">
+                    <span className="fam">{meta.fam}</span>
+                    <span className="ld-mchip">
+                      <i />
+                      Available
+                    </span>
+                  </div>
+                  <h3>{id}</h3>
+                  {meta.note ? <p>{t(meta.note)}</p> : null}
+                </article>
+              );
+            })}
             <article className="card ld-model-card cta-tile reveal">
               <div className="top">
                 <span className="fam">Request</span>
               </div>
-              <h3>Model lain menyusul.</h3>
+              <h3>{t("Model lain menyusul.")}</h3>
               <p>
-                Request model favorit kamu lewat{" "}
-                <a href="https://t.me/tiprouter_bot" target="_blank" rel="noopener">
+                {t("Request model favorit kamu lewat")}{" "}
+                <a href="https://t.me/hermestele" target="_blank" rel="noopener">
                   Telegram
                 </a>
-                , kami usahakan masuk daftar.
+                {t(", kami usahakan masuk daftar.")}
               </p>
             </article>
           </div>
         </section>
 
         <section className="ld-section" id="cara-pakai">
-          <p className="ld-label">Cara Pakai</p>
+          <p className="ld-label">{t("Cara Pakai")}</p>
           <h2 className="ld-sec">
-            Mulai dalam <em>tiga langkah.</em>
+            {t("Mulai dalam")} <em>{t("tiga langkah.")}</em>
           </h2>
           <div className="ld-steps">
             <div className="card ld-step reveal">
               <p className="verb">
-                <span>01</span>Beli
+                <span>01</span>{t("Beli")}
               </p>
-              <p>Buka halaman Beli, pilih paket, lalu bayar pakai QRIS. Key muncul otomatis begitu pembayaran masuk.</p>
+              <p>{t("Buka halaman Beli, pilih paket, lalu bayar pakai QRIS. Key muncul otomatis begitu pembayaran masuk.")}</p>
             </div>
             <div className="card ld-step reveal">
               <p className="verb">
-                <span>02</span>Pasang
+                <span>02</span>{t("Pasang")}
               </p>
               <p>
-                Arahkan base URL aplikasi kamu ke <code>https://tiprouter.my.id/v1</code>, lalu tempel key-nya.
+                {t("Arahkan base URL aplikasi kamu ke")} <code>https://tiprouter.my.id/v1</code>{t(", lalu tempel key-nya.")}
               </p>
             </div>
             <div className="card ld-step reveal">
               <p className="verb">
-                <span>03</span>Pakai
+                <span>03</span>{t("Pakai")}
               </p>
               <p>
-                Panggil model apa pun, misalnya <code>deepseek-v4-flash</code>. Format request sama persis dengan OpenAI.
+                {t("Panggil model apa pun, misalnya")} <code>deepseek-v-4.1-flash</code>{t(". Format request sama persis dengan OpenAI.")}
               </p>
             </div>
           </div>
@@ -647,12 +693,12 @@ export default function Landing() {
             <div className="ld-config-row">
               <span className="k">API Key</span>
               <p className="plain">
-                Key pribadi kamu muncul otomatis setelah pembayaran — format <b>tip_…</b>, aktif ±1 menit.
+                {t("Key pribadi kamu muncul otomatis setelah pembayaran — format")} <b>tip_…</b>{t(", aktif ±1 menit.")}
               </p>
             </div>
             <div className="ld-config-row">
               <span className="k">Format</span>
-              <p className="plain">Kompatibel OpenAI. Aplikasi yang sudah jalan tinggal ganti base URL dan key.</p>
+              <p className="plain">{t("Kompatibel OpenAI. Aplikasi yang sudah jalan tinggal ganti base URL dan key.")}</p>
             </div>
             <pre className="ld-sample">
               <span className="c"># Format OpenAI. Ganti base URL dan key saja.</span>
@@ -661,7 +707,7 @@ export default function Landing() {
               <span className="s">"Authorization: Bearer KEY_KAMU"</span>
               {" \\\n  -d "}
               <span className="s">
-                {'\'{"model": "deepseek-v4-flash",\n       "messages": [{"role": "user",\n       "content": "Halo!"}]}\''}
+                {'\'{"model": "deepseek-v-4.1-flash",\n       "messages": [{"role": "user",\n       "content": "Halo!"}]}\''}
               </span>
             </pre>
           </div>
@@ -670,70 +716,70 @@ export default function Landing() {
         <section className="ld-section" id="harga">
           <p className="ld-label">Pricing</p>
           <h2 className="ld-sec">
-            Pilih masa <em>aktifmu.</em>
+            {t("Pilih masa")} <em>{t("aktifmu.")}</em>
           </h2>
           <p className="ld-lead">
-            Semua paket membuka semua model yang sama. Bedanya cuma masa aktif, makin lama makin murah per hari. Bayar sekali; tidak ada yang auto-perpanjang.
+            {t("Semua paket membuka semua model yang sama. Bedanya cuma masa aktif, makin lama makin murah per hari. Bayar sekali; tidak ada yang auto-perpanjang.")}
           </p>
           <div className="ld-price-grid">
             {PRICES.map((p) => (
               <div className={"card ld-price reveal" + (p.pop ? " pop" : "")} key={p.name}>
-                {p.pop && <span className="ld-pop-tag">Paling hemat</span>}
-                <p className="plan-name">{p.name}</p>
-                <p className="amount">{p.amount}</p>
-                <p className="per">{p.per}</p>
+                {p.pop && <span className="ld-pop-tag">{t("Paling hemat")}</span>}
+                <p className="plan-name">{t(p.name)}</p>
+                <p className="amount">{t(p.amount)}</p>
+                <p className="per">{t(p.per)}</p>
                 <ul>
                   {p.features.map((f) => (
-                    <li key={f}>{f}</li>
+                    <li key={f}>{t(f)}</li>
                   ))}
                 </ul>
                 <Link className="btn" to="/beli">
-                  Beli Sekarang
+                  {t("Beli Sekarang")}
                 </Link>
               </div>
             ))}
             <div className="card ld-price reveal">
-              <p className="plan-name">Butuh lebih lama?</p>
+              <p className="plan-name">{t("Butuh lebih lama?")}</p>
               <p className="amount">Custom</p>
-              <p className="per">paket di luar daftar, tanya dulu</p>
+              <p className="per">{t("paket di luar daftar, tanya dulu")}</p>
               <ul>
-                <li>Masa aktif fleksibel</li>
-                <li>Buat tim atau jualan lagi</li>
+                <li>{t("Masa aktif fleksibel")}</li>
+                <li>{t("Buat tim atau jualan lagi")}</li>
               </ul>
-              <a className="btn" href="https://t.me/tiprouter_bot" target="_blank" rel="noopener">
-                Chat Bot
+              <a className="btn" href="https://t.me/hermestele" target="_blank" rel="noopener">
+                {t("Chat Admin")}
               </a>
             </div>
           </div>
           <p className="ld-price-note">
-            Bayar otomatis via QRIS (GoPay dan e-wallet). Key dikirim otomatis begitu pembayaran masuk, tanpa nunggu admin. Tidak ada tagihan lanjutan.
+            {t("Bayar otomatis via QRIS (GoPay dan e-wallet). Key dikirim otomatis begitu pembayaran masuk, tanpa nunggu admin. Tidak ada tagihan lanjutan.")}
           </p>
 
           <div className="card ld-compare reveal">
             <div className="row head">
-              <span>Perbandingan</span>
+              <span>{t("Perbandingan")}</span>
               <span>TipRouter</span>
-              <span>API resmi per token</span>
+              <span>{t("API resmi per token")}</span>
             </div>
             <div className="row">
-              <span className="k">Skema biaya</span>
-              <span className="us">Flat per masa aktif</span>
-              <span className="them">Per token, fluktuatif</span>
+              <span className="k">{t("Skema biaya")}</span>
+              <span className="us">{t("Flat per masa aktif")}</span>
+              <span className="them">{t("Per token, fluktuatif")}</span>
             </div>
             <div className="row">
-              <span className="k">Jumlah model</span>
-              <span className="us">12 model, satu key</span>
-              <span className="them">Satu key per provider</span>
+              <span className="k">{t("Jumlah model")}</span>
+              <span className="us">{t("12 model, satu key")}</span>
+              <span className="them">{t("Satu key per provider")}</span>
             </div>
             <div className="row">
-              <span className="k">Cara bayar</span>
-              <span className="us">QRIS, transfer, e-wallet</span>
-              <span className="them">Kartu kredit internasional</span>
+              <span className="k">{t("Cara bayar")}</span>
+              <span className="us">{t("QRIS, transfer, e-wallet")}</span>
+              <span className="them">{t("Kartu kredit internasional")}</span>
             </div>
             <div className="row">
               <span className="k">Support</span>
-              <span className="us">Bahasa Indonesia, via Telegram</span>
-              <span className="them">Bahasa Inggris, via tiket</span>
+              <span className="us">{t("Bahasa Indonesia, via Telegram")}</span>
+              <span className="them">{t("Bahasa Inggris, via tiket")}</span>
             </div>
           </div>
         </section>
@@ -741,13 +787,13 @@ export default function Landing() {
         <section className="ld-section" id="faq">
           <p className="ld-label">FAQ</p>
           <h2 className="ld-sec">
-            Sering <em>ditanyakan.</em>
+            {t("Sering")} <em>{t("ditanyakan.")}</em>
           </h2>
           <div className="ld-faq">
             {FAQS.map((f) => (
               <details className="card reveal" key={f.q}>
-                <summary>{f.q}</summary>
-                <p>{f.a}</p>
+                <summary>{t(f.q)}</summary>
+                <p>{t(f.a)}</p>
               </details>
             ))}
           </div>
@@ -755,11 +801,11 @@ export default function Landing() {
 
         <div className="ld-final reveal">
           <h2>
-            Berhenti kena limit <em>hari ini.</em>
+            {t("Berhenti kena limit")} <em>{t("hari ini.")}</em>
           </h2>
-          <p>Satu key, 12 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.</p>
+          <p>{t("Satu key, 12 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.")}</p>
           <Link className="btn" to="/beli">
-            Beli Sekarang
+            {t("Beli Sekarang")}
           </Link>
         </div>
       </div>
