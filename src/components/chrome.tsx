@@ -86,6 +86,9 @@ export function SiteFooter() {
         <Link to="/syarat" style={{ textDecoration: "underline" }}>
           {t("Syarat & Ketentuan")}
         </Link>
+        <Link to="/statistik" style={{ textDecoration: "underline" }}>
+          {t("Statistik")}
+        </Link>
         <a
           href="https://t.me/hermestele"
           target="_blank"

@@ -372,3 +372,28 @@ export const EN_D: Record<string, string> = {
   "Semua sudah dibaca": "All caught up",
   "Muat lagi": "Load more",
 };
+
+Object.assign(EN_D, {
+  "Statistik live": "Live stats",
+  "24 jam terakhir": "Last 24 hours",
+  "total request": "total requests",
+  "Input tokens": "Input tokens",
+  "token prompt": "prompt tokens",
+  "Output tokens": "Output tokens",
+  "token completion": "completion tokens",
+  "Success rate": "Success rate",
+  "tingkat sukses": "success rate",
+  "{n} sukses": "{n} succeeded",
+  "Model terlaris": "Top models",
+  "Req": "Req",
+  "Sukses": "OK",
+  "sukses": "success",
+  "Memuat…": "Loading…",
+  "Lihat statistik lengkap": "View full statistics",
+  "Statistik lagi tidak bisa dimuat. Coba refresh halaman.": "Stats couldn't be loaded right now. Try refreshing the page.",
+  "Data asli 24 jam terakhir dari jaringan TipRouter (agregat anonim — tanpa nama pengguna, isi chat, atau data key). Diperbarui tiap menit.":
+    "Real last-24-hour data from the TipRouter network (anonymous aggregates — no usernames, chat content, or key data). Updated every minute.",
+  "Statistik jaringan": "Network statistics",
+  "10 model dengan request terbanyak dalam 24 jam terakhir.": "Top 10 models by requests in the last 24 hours.",
+  "Statistik": "Statistics",
+});

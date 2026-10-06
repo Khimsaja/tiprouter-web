@@ -135,7 +135,26 @@ export const api = {
     fetch("/api/notifications/read", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids }) }).then((r) => j<{ ok: true }>(r)),
   notifReadAll: () =>
     fetch("/api/notifications/read", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ all: true }) }).then((r) => j<{ ok: true }>(r)),
+  publicStats: () =>
+    fetch("/api/stats/public").then((r) => j<PublicStats>(r)),
 };
+
+export interface PublicModelStat {
+  model: string;
+  hits: number;
+  ok: number;
+}
+
+export interface PublicStats {
+  window: "24h";
+  requests: number;
+  ok: number;
+  success_rate: number;
+  input_tokens: number;
+  output_tokens: number;
+  top_models: PublicModelStat[];
+  generated_at: string;
+}
 
 import { getLang, localeTag } from "./i18n";
 

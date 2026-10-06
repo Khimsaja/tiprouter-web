@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PublicLayout } from "../components/chrome";
 import { localeTag, tr, useLang } from "../lib/i18n";
+import { usePublicStats } from "../lib/usePublicStats";
 
 const CSS = `
 .ld-refbar{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px;font-size:13.5px;color:var(--mut);margin-bottom:14px;line-height:1.5}
@@ -33,6 +34,7 @@ const CSS = `
 .ld-topmodels .th{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);padding-bottom:2px}
 .ld-topmodels .tr{border-top:1px solid var(--border);font-family:var(--font-mono)}
 .ld-topmodels .tr span:first-child{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-topmodels.cols3 .th,.ld-topmodels.cols3 .tr{grid-template-columns:1fr 64px 64px}
 .ld-topmodels .num{text-align:right;color:var(--mut)}
 .ld-live-list{list-style:none;margin-top:12px;border-top:1px solid var(--border);padding-top:6px;min-height:196px}
 .ld-live-row{display:flex;align-items:center;gap:9px;padding:7px 2px;font-size:13px;border-bottom:1px solid var(--border)}
@@ -129,6 +131,7 @@ const CSS = `
 @media (max-width:640px){
   .ld-metrics{grid-template-columns:repeat(2,1fr)}
   .ld-topmodels .th,.ld-topmodels .tr{grid-template-columns:1fr 44px 44px 62px;font-size:11.5px}
+  .ld-topmodels.cols3 .th,.ld-topmodels.cols3 .tr{grid-template-columns:1fr 56px 56px}
   .ld-model-grid,.ld-price-grid,.ld-steps{grid-template-columns:1fr}
   .ld-avail{grid-template-columns:1fr}
   .ld-config-row{grid-template-columns:1fr;gap:8px}
@@ -165,60 +168,6 @@ const MODEL_META: Record<string, { fam: string; note: string }> = {
 };
 const FALLBACK_MODELS = Object.keys(MODEL_META);
 
-type LogEntry = { m: string; ms: number; tok: number; t: number };
-
-// Live success log — real anonymized production successes (model, latency ms, output tokens, epoch s)
-const LIVE_LOGS: LogEntry[] = [
-  { m: "deepseek-v-4.1-flash", ms: 3241, tok: 410, t: 1791037928 },
-  { m: "deepseek-v-4.1-flash", ms: 2696, tok: 402, t: 1791037926 },
-  { m: "deepseek-v-4.1-flash", ms: 6620, tok: 928, t: 1791037924 },
-  { m: "longcat-2.5-preview", ms: 17099, tok: 338, t: 1791037921 },
-  { m: "glm-5-3-flash", ms: 26407, tok: 279, t: 1791037921 },
-  { m: "deepseek-v-4.1-flash", ms: 2218, tok: 332, t: 1791037921 },
-  { m: "deepseek-v-4.1-flash", ms: 2180, tok: 187, t: 1791037919 },
-  { m: "deepseek-v-4.1-flash", ms: 9914, tok: 2197, t: 1791037914 },
-  { m: "deepseek-v-4.1-flash", ms: 1500, tok: 109, t: 1791037912 },
-  { m: "deepseek-v-4.1-flash", ms: 7413, tok: 742, t: 1791037908 },
-  { m: "deepseek-v-4.1-flash", ms: 8923, tok: 403, t: 1791037908 },
-  { m: "deepseek-v-4.1-flash", ms: 11787, tok: 665, t: 1791037905 },
-  { m: "longcat-2.5-preview", ms: 16454, tok: 425, t: 1791037903 },
-  { m: "deepseek-v-4.1-flash", ms: 7484, tok: 186, t: 1791037898 },
-  { m: "deepseek-v-4.1-flash", ms: 7894, tok: 658, t: 1791037897 },
-  { m: "glm-5-3-flash", ms: 14978, tok: 391, t: 1791037894 },
-  { m: "glm-5-3-flash", ms: 8541, tok: 110, t: 1791037894 },
-  { m: "deepseek-v-4.1-flash", ms: 12703, tok: 1405, t: 1791037891 },
-  { m: "deepseek-v-4.1-flash", ms: 6207, tok: 997, t: 1791037889 },
-  { m: "deepseek-v-4.1-flash", ms: 2453, tok: 350, t: 1791037889 },
-  { m: "deepseek-v-4.1-flash", ms: 14975, tok: 2847, t: 1791037887 },
-  { m: "muse-spark-1.3", ms: 4365, tok: 51, t: 1791037885 },
-  { m: "deepseek-v-4.1-flash", ms: 1911, tok: 187, t: 1791037885 },
-  { m: "deepseek-v-4.1-flash", ms: 4787, tok: 887, t: 1791037885 },
-  { m: "muse-spark-1.3", ms: 22276, tok: 1552, t: 1791037884 },
-  { m: "deepseek-v-4.1-flash", ms: 4617, tok: 1501, t: 1791037883 },
-  { m: "deepseek-v-4.1-flash", ms: 6105, tok: 726, t: 1791037882 },
-  { m: "glm-5-3-flash", ms: 1123, tok: 64, t: 1791037882 },
-  { m: "muse-spark-1.3", ms: 9829, tok: 692, t: 1791037880 },
-  { m: "deepseek-v-4.1-flash", ms: 4562, tok: 719, t: 1791037880 },
-  { m: "deepseek-v-4.1-flash", ms: 2168, tok: 291, t: 1791037877 },
-  { m: "deepseek-v-4.1-flash", ms: 3075, tok: 493, t: 1791037877 },
-  { m: "glm-5-3-flash", ms: 63344, tok: 1661, t: 1791037877 },
-  { m: "deepseek-v-4.1-flash", ms: 2327, tok: 835, t: 1791037874 },
-  { m: "glm-5-3-flash", ms: 4337, tok: 64, t: 1791037871 },
-  { m: "deepseek-v-4.1-flash", ms: 3602, tok: 1022, t: 1791037870 },
-  { m: "glm-5-3-flash", ms: 5144, tok: 75, t: 1791037870 },
-  { m: "deepseek-v-4.1-flash", ms: 3041, tok: 339, t: 1791037869 },
-  { m: "deepseek-v-4.1-flash", ms: 2600, tok: 589, t: 1791037867 },
-  { m: "glm-5-3-flash", ms: 57988, tok: 2870, t: 1791037865 },
-  { m: "deepseek-v-4.1-flash", ms: 5086, tok: 816, t: 1791037863 },
-  { m: "glm-5-3-flash", ms: 4675, tok: 106, t: 1791037863 },
-  { m: "muse-spark-1.3", ms: 16273, tok: 1728, t: 1791037862 },
-  { m: "muse-spark-1.3", ms: 14211, tok: 1382, t: 1791037860 },
-  { m: "gpt-6-luna", ms: 16914, tok: 563, t: 1791037860 },
-  { m: "deepseek-v-4.1-flash", ms: 3049, tok: 543, t: 1791037857 },
-  { m: "glm-5-3-flash", ms: 9168, tok: 150, t: 1791037857 },
-  { m: "qwen3.8-uncensored", ms: 2699, tok: 1, t: 1791037855 },
-];
-
 const fmtID = (n: number) => n.toLocaleString(localeTag());
 const fmtCompact = (n: number) =>
   n >= 1e6
@@ -226,19 +175,6 @@ const fmtCompact = (n: number) =>
     : n >= 1e3
       ? (n / 1e3).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" rb")
       : String(n);
-
-const MAX_ROWS = 7;
-
-type LiveRow = { e: LogEntry; shownAt: number; key: number };
-
-function ageText(shownAt: number) {
-  const s = Math.max(0, Math.round((Date.now() - shownAt) / 1000));
-  if (s < 5) return tr("baru saja");
-  if (s < 60) return tr("{n} dtk lalu", { n: s });
-  const m = Math.floor(s / 60);
-  if (m < 60) return tr("{n} mnt lalu", { n: m });
-  return tr("{n} jam lalu", { n: Math.floor(m / 60) });
-}
 
 function CopyBaseUrlBtn() {
   const { t } = useLang();
@@ -262,146 +198,79 @@ function CopyBaseUrlBtn() {
 }
 
 function StatsCard() {
-  const { t, lang } = useLang();
-  const metrics = useMemo(() => {
-    const totalTok = LIVE_LOGS.reduce((a, e) => a + e.tok, 0);
-    const usedModels = new Set(LIVE_LOGS.map((e) => e.m)).size;
-    const sortedMs = [...LIVE_LOGS.map((e) => e.ms)].sort((a, b) => a - b);
-    const median = sortedMs[Math.floor(sortedMs.length / 2)] || 0;
-    const byModel = new Map<string, { n: number; tok: number; tps: number[] }>();
-    LIVE_LOGS.forEach((e) => {
-      let b = byModel.get(e.m);
-      if (!b) {
-        b = { n: 0, tok: 0, tps: [] };
-        byModel.set(e.m, b);
-      }
-      b.n++;
-      b.tok += e.tok;
-      if (e.ms > 0) b.tps.push(e.tok / (e.ms / 1000));
-    });
-    const top = [...byModel.entries()]
-      .sort((a, b) => b[1].n - a[1].n)
-      .slice(0, 3)
-      .map(([name, b]) => ({
-        name,
-        n: b.n,
-        tps: b.tps.length ? String(Math.round(b.tps.reduce((x, y) => x + y, 0) / b.tps.length)) : "—",
-        tok: fmtCompact(b.tok),
-      }));
-    return {
-      requests: fmtID(LIVE_LOGS.length),
-      tokens: fmtCompact(totalTok),
-      models: String(usedModels),
-      median: (median / 1000).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + t(" dtk"),
-      top,
-    };
-  }, [lang]);
+  const { t } = useLang();
+  const { stats, error } = usePublicStats();
+  const loading = !stats && !error;
 
-  const [rows, setRows] = useState<LiveRow[]>(() => {
-    const t0 = Math.max(...LIVE_LOGS.map((e) => e.t));
-    const started = Date.now();
-    return LIVE_LOGS.slice(0, MAX_ROWS).map((e, i) => ({
-      e,
-      shownAt: started - (t0 - e.t) * 1000,
-      key: i,
-    }));
-  });
-  const [, setNowTick] = useState(0);
-  const idxRef = useRef(MAX_ROWS);
-  const keyRef = useRef(MAX_ROWS);
-
-  useEffect(() => {
-    const iv = window.setInterval(() => {
-      if (document.hidden) return;
-      const e = LIVE_LOGS[idxRef.current % LIVE_LOGS.length];
-      idxRef.current++;
-      const row: LiveRow = { e, shownAt: Date.now(), key: keyRef.current++ };
-      setRows((prev) => [row, ...prev].slice(0, MAX_ROWS));
-    }, 4000);
-    const ages = window.setInterval(() => setNowTick((t) => t + 1), 15000);
-    return () => {
-      window.clearInterval(iv);
-      window.clearInterval(ages);
-    };
-  }, []);
+  const top = (stats?.top_models ?? []).slice(0, 5);
+  const pct = (r: number) => (r * 100).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+  const val = (v: string) => (loading ? "\u2026" : v);
 
   return (
     <div className="card reveal" style={{ marginTop: 0 }}>
       <div className="ld-stats-head">
         <span className="ld-label">
           <span className="dot" />
-          Stats &amp; Activity
+          {t("Statistik live")}
         </span>
-        <span className="r">{t("telemetri produksi")}</span>
+        <span className="r">{t("24 jam terakhir")}</span>
       </div>
       <div className="ld-metrics">
         <div className="ld-metric">
-          <p className="k">Requests</p>
-          <p className="v">{metrics.requests}</p>
-          <p className="s">{t("request sukses terakhir")}</p>
+          <p className="k">{t("Requests")}</p>
+          <p className="v">{stats ? fmtID(stats.requests) : val("")}</p>
+          <p className="s">{t("total request")}</p>
         </div>
         <div className="ld-metric">
-          <p className="k">Tokens</p>
-          <p className="v">{metrics.tokens}</p>
-          <p className="s">{t("output terukur")}</p>
+          <p className="k">{t("Input tokens")}</p>
+          <p className="v">{stats ? fmtCompact(stats.input_tokens) : val("")}</p>
+          <p className="s">{t("token prompt")}</p>
         </div>
         <div className="ld-metric">
-          <p className="k">Models Used</p>
-          <p className="v">{metrics.models}</p>
-          <p className="s">{t("dari 12 model")}</p>
+          <p className="k">{t("Output tokens")}</p>
+          <p className="v">{stats ? fmtCompact(stats.output_tokens) : val("")}</p>
+          <p className="s">{t("token completion")}</p>
         </div>
         <div className="ld-metric">
-          <p className="k">Median</p>
-          <p className="v">{metrics.median}</p>
-          <p className="s">{t("detik per respons")}</p>
+          <p className="k">{t("Success rate")}</p>
+          <p className="v">{stats ? pct(stats.success_rate) : val("")}</p>
+          <p className="s">{stats ? t("{n} sukses", { n: fmtID(stats.ok) }) : t("tingkat sukses")}</p>
         </div>
       </div>
-      <div className="ld-topmodels">
+      <div className="ld-topmodels cols3">
         <div className="th">
-          <span>Top Models</span>
-          <span style={{ textAlign: "right" }}>Req</span>
-          <span style={{ textAlign: "right" }}>TPS</span>
-          <span style={{ textAlign: "right" }}>Tokens</span>
+          <span>{t("Model terlaris")}</span>
+          <span style={{ textAlign: "right" }}>{t("Req")}</span>
+          <span style={{ textAlign: "right" }}>{t("Sukses")}</span>
         </div>
         <div>
-          {metrics.top.map((t) => (
-            <div className="tr" key={t.name}>
-              <span>{t.name}</span>
-              <span className="num">{t.n}</span>
-              <span className="num">{t.tps}</span>
-              <span className="num">{t.tok}</span>
+          {top.map((m) => (
+            <div className="tr" key={m.model}>
+              <span>{m.model}</span>
+              <span className="num">{fmtID(m.hits)}</span>
+              <span className="num">{fmtID(m.ok)}</span>
             </div>
           ))}
+          {loading && (
+            <div className="tr"><span>{t("Memuat\u2026")}</span><span className="num">\u2026</span><span className="num">\u2026</span></div>
+          )}
         </div>
       </div>
-      <ul className="ld-live-list" aria-label={t("Log request sukses terbaru")}>
-        {rows.map((r, i) => (
-          <li className={"ld-live-row" + (i === 0 && r.key >= MAX_ROWS ? " enter" : "")} key={r.key}>
-            <span className="ld-live-check">
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M2 6.5 4.8 9 10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <span className="ld-live-model">{r.e.m}</span>
-            <span className="ld-live-meta">
-              {(r.e.ms / 1000).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + t(" dtk")}{" "}
-              <span className="tok">· {fmtID(r.e.tok)} token</span>
-            </span>
-            <span className="ld-live-ok">200 OK</span>
-            <span className="ld-live-age">{ageText(r.shownAt)}</span>
-          </li>
-        ))}
-      </ul>
       <div className="ld-stats-foot">
         <span className="ld-label" style={{ color: "var(--green)" }}>
           <span className="dot" />
           Open for requests
         </span>
-        <span className="r">tiprouter.my.id</span>
+        <Link to="/statistik" className="r" style={{ textDecoration: "underline" }}>{t("Lihat statistik lengkap")}</Link>
       </div>
-      <p className="ld-stats-note">
-        {t("Diambil dari telemetri produksi TipRouter (dianonimkan — nama pengguna dan isi chat tidak pernah ditampilkan). Latensi = waktu sampai respons selesai.")}
-      </p>
+      {error && !stats && (
+        <p className="ld-stats-note">{t("Statistik lagi tidak bisa dimuat. Coba refresh halaman.")}</p>
+      )}
+      {!error && (
+        <p className="ld-stats-note">
+          {t("Data asli 24 jam terakhir dari jaringan TipRouter (agregat anonim — tanpa nama pengguna, isi chat, atau data key). Diperbarui tiap menit.")}
+        </p>
+      )}
     </div>
   );
 }

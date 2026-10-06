@@ -74,6 +74,12 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
     dId: "Daftar proxy gratis HTTP, HTTPS, SOCKS4, SOCKS5 dari seluruh dunia. Filter per negara dan protokol, pilih, salin, atau download. Tanpa login.",
     dEn: "Free HTTP, HTTPS, SOCKS4, and SOCKS5 proxy list from around the world. Filter by country and protocol, select, copy, or download. No login needed.",
   },
+  "/statistik": {
+    id: "Statistik Jaringan — TipRouter",
+    en: "Network Statistics — TipRouter",
+    dId: "Statistik live jaringan TipRouter 24 jam terakhir: total request, input/output token, dan model terlaris.",
+    dEn: "Live TipRouter network statistics for the last 24 hours: total requests, input/output tokens, and top models.",
+  },
   "/playground": {
     id: "Playground — TipRouter",
     en: "Playground — TipRouter",
