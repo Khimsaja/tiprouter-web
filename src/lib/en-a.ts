@@ -37,6 +37,7 @@ export const EN_A: Record<string, string> = {
   // Availability strip
   "selama masa aktif key kamu": "while your key is active",
   "12 model": "12 models",
+  "15 model": "15 models",
   "semua terbuka di setiap paket": "open on every plan",
   "150 req/mnt": "150 req/min",
   "per key, biar pool enak dipakai semua": "per key, so the pool stays fast for everyone",
@@ -122,6 +123,7 @@ export const EN_A: Record<string, string> = {
   "Per token, fluktuatif": "Per token, fluctuates",
   "Jumlah model": "Number of models",
   "12 model, satu key": "12 models, one key",
+  "15 model, satu key": "15 models, one key",
   "Satu key per provider": "One key per provider",
   "Cara bayar": "Payment",
   "QRIS, transfer, e-wallet": "QRIS, bank transfer, e-wallet",
@@ -146,5 +148,5 @@ export const EN_A: Record<string, string> = {
   // Final CTA
   "Berhenti kena limit": "Stop hitting limits",
   "hari ini.": "today.",
-  "Satu key, 12 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.": "One key, 12 models, active in a minute. Plans start at 1 day, no credit card needed.",
+  "Satu key, 15 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.": "One key, 15 models, active in a minute. Active period from 1 day, no credit card.",
 };

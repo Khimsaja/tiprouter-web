@@ -425,7 +425,7 @@ export default function Landing() {
               <p className="ld-hero-note">{t("Satu key untuk semua model. Coba gratis dulu lewat gacha bansos.")}</p>
               <div className="ld-hero-stats">
                 <div>
-                  <p className="n">12</p>
+                  <p className="n">15</p>
                   <p className="l">{t("model AI aktif")}</p>
                 </div>
                 <div>
@@ -462,7 +462,7 @@ export default function Landing() {
           </div>
           <div className="fact">
             <p className="k">Models</p>
-            <p className="v">{t("12 model")}</p>
+            <p className="v">{t("15 model")}</p>
             <p className="s">{t("semua terbuka di setiap paket")}</p>
           </div>
           <div className="fact">
@@ -634,7 +634,7 @@ export default function Landing() {
             </div>
             <div className="row">
               <span className="k">{t("Jumlah model")}</span>
-              <span className="us">{t("12 model, satu key")}</span>
+              <span className="us">{t("15 model, satu key")}</span>
               <span className="them">{t("Satu key per provider")}</span>
             </div>
             <div className="row">
@@ -669,7 +669,7 @@ export default function Landing() {
           <h2>
             {t("Berhenti kena limit")} <em>{t("hari ini.")}</em>
           </h2>
-          <p>{t("Satu key, 12 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.")}</p>
+          <p>{t("Satu key, 15 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.")}</p>
           <Link className="btn" to="/beli">
             {t("Beli Sekarang")}
           </Link>
