@@ -96,11 +96,8 @@ const CSS = `
 .ld-price ul li{font-size:14px;color:var(--mut);padding-left:22px;position:relative;line-height:1.45}
 .ld-price ul li::before{content:"";position:absolute;left:0;top:5px;width:13px;height:13px;border-radius:50%;background:var(--hover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5 4.8 9 10 3' stroke='%231F9D55' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/8px no-repeat}
 .ld-price .btn{margin-top:auto;width:100%}
-.ld-price.pop{background:var(--txt);color:var(--bg);border-color:var(--txt)}
-.ld-price.pop .plan-name{color:var(--bg);opacity:.55}
-.ld-price.pop .per{color:var(--bg);opacity:.55}
-.ld-price.pop ul li{color:var(--bg);opacity:.85}
-.ld-price.pop .btn{background:var(--bg);color:var(--txt);border-color:var(--bg)}
+.ld-price.pop{border-color:var(--txt);box-shadow:0 0 0 1px var(--txt)}
+.ld-price.pop .btn{background:var(--btn);color:var(--btn-t);border-color:var(--btn)}
 .ld-pop-tag{position:absolute;top:-11px;right:20px;background:var(--txt);color:var(--bg);border:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 12px;border-radius:999px}
 .ld-price-note{font-size:13px;color:var(--faint);line-height:1.6;margin-top:16px;text-align:center}
 .ld-compare{margin-top:20px;padding:8px 24px}
