@@ -289,6 +289,7 @@ export const EN_D: Record<string, string> = {
   "Verifikasi anti-bot gagal. Coba lagi.": "Anti-bot verification failed. Try again.",
   "Gagal menghubungkan key. Coba lagi.": "Failed to link key. Try again.",
   "Cobain API key kamu langsung di browser. Pilih model, atur parameter, ngobrol — tanpa install apa pun.": "Try your API key right in the browser. Pick a model, tweak parameters, chat — no install needed.",
+  "Beranda": "Home",
   "Pakai key dari akunmu": "Use a key from your account",
   "— atau tempel manual di bawah —": "— or paste manually below —",
   "Key manual": "Manual key",

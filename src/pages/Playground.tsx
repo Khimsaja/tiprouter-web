@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FlaskConical, Send, Square, Trash2, KeyRound, ChevronDown, Copy, Check, Eye, EyeOff, Settings2 } from "lucide-react";
+import { FlaskConical, Send, Square, Trash2, KeyRound, ChevronDown, Copy, Check, Eye, EyeOff, Settings2, ArrowLeft } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
 import { api, type KeyItem } from "../lib/api";
 import { useSession } from "../lib/session";
@@ -12,6 +12,8 @@ const PG_STYLE = `
 .pg-head h1{font-size:22px;margin:0}
 .pg-head .ico{width:36px;height:36px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
 .pg-sub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+.pg-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;margin:14px 0 0}
+.pg-back:hover{color:var(--txt)}
 .pg-grid{display:grid;grid-template-columns:1fr;gap:12px}
 .pg-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
 .pg-card h3{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px}
@@ -231,6 +233,7 @@ export default function Playground() {
     <PublicLayout>
       <style>{PG_STYLE}</style>
       <div className="pg">
+        <Link to={me ? "/dashboard" : "/"} className="pg-back"><ArrowLeft size={14} />{me ? t("Dashboard") : t("Beranda")}</Link>
         <div className="pg-head">
           <span className="ico"><FlaskConical size={18} /></span>
           <h1>{t("Playground")}</h1>
