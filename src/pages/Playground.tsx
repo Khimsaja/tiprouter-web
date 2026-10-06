@@ -100,7 +100,7 @@ function maskKey(k: string) {
   return k.slice(0, 6) + "••••••••" + k.slice(-4);
 }
 
-export default function Playground() {
+export default function Playground({ embedded }: { embedded?: boolean }) {
   const { t } = useLang();
   const { me } = useSession();
   const [models, setModels] = useState<string[]>([]);
@@ -229,11 +229,13 @@ export default function Playground() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  return (
-    <PublicLayout>
+  const content = (
+    <>
       <style>{PG_STYLE}</style>
       <div className="pg">
-        <Link to={me ? "/dashboard" : "/"} className="pg-back"><ArrowLeft size={14} />{me ? t("Dashboard") : t("Beranda")}</Link>
+        {!embedded && (
+          <Link to={me ? "/dashboard" : "/"} className="pg-back"><ArrowLeft size={14} />{me ? t("Dashboard") : t("Beranda")}</Link>
+        )}
         <div className="pg-head">
           <span className="ico"><FlaskConical size={18} /></span>
           <h1>{t("Playground")}</h1>
@@ -353,6 +355,7 @@ export default function Playground() {
           </div>
         </div>
       </div>
-    </PublicLayout>
+    </>
   );
+  return embedded ? content : <PublicLayout>{content}</PublicLayout>;
 }

@@ -57,6 +57,7 @@ const router = createBrowserRouter([
       { path: "/dashboard/keys", element: <Keys /> },
       { path: "/dashboard/usage", element: <Usage /> },
       { path: "/dashboard/models", element: <Models /> },
+      { path: "/dashboard/playground", element: <Playground embedded /> },
       { path: "/dashboard/panduan", element: <Panduan /> },
       { path: "/gacha", element: <Navigate to="/bansos" replace /> },
       { path: "/profile", element: <Profile /> },

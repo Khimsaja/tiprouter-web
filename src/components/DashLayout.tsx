@@ -10,7 +10,7 @@ const LINKS = [
   { to: "/dashboard/keys", label: "API Keys", icon: KeyRound },
   { to: "/dashboard/usage", label: "Usage", icon: ListOrdered },
   { to: "/dashboard/models", label: "Model", icon: Sparkles },
-  { to: "/playground", label: "Playground", icon: FlaskConical },
+  { to: "/dashboard/playground", label: "Playground", icon: FlaskConical },
   { to: "/dashboard/panduan", label: "Panduan", icon: BookOpenText },
   { to: "/bansos", label: "Gacha Bansos", icon: Gift },
   { to: "/referral", label: "Referral", icon: Users },

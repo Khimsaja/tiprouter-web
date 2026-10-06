@@ -86,6 +86,12 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
     dId: "Coba API key TipRouter langsung di browser. Pilih model, atur parameter, dan ngobrol dengan AI tanpa install apa pun.",
     dEn: "Try your TipRouter API key right in the browser. Pick a model, tweak parameters, and chat with AI — no install needed.",
   },
+  "/dashboard/playground": {
+    id: "Playground — TipRouter",
+    en: "Playground — TipRouter",
+    dId: "Coba API key TipRouter langsung di browser. Pilih model, atur parameter, dan ngobrol dengan AI tanpa install apa pun.",
+    dEn: "Try your TipRouter API key right in the browser. Pick a model, tweak parameters, and chat with AI — no install needed.",
+  },
 };
 
 export function applyTitle(pathname: string) {
