@@ -49,6 +49,18 @@ export type ProxyItem = {
   latency_ms?: number;
 };
 
+export type NotifKind = "info" | "success" | "warning" | "promo";
+export type NotifItem = {
+  id: string;
+  sender: string;
+  title: string;
+  body: string;
+  link: string | null;
+  kind: NotifKind;
+  createdAt: string;
+  read: number;
+};
+
 export type ProxyStats = {
   total: number;
   by_protocol: Record<string, number>;
@@ -117,6 +129,12 @@ export const api = {
     for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") qs.set(k, String(v));
     return fetch("/api/proxies?" + qs.toString()).then((r) => j<ProxyResult>(r));
   },
+  notifications: (limit = 10) =>
+    fetch("/api/notifications?limit=" + limit).then((r) => j<{ items: NotifItem[]; unread: number }>(r)),
+  notifRead: (ids: string[]) =>
+    fetch("/api/notifications/read", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids }) }).then((r) => j<{ ok: true }>(r)),
+  notifReadAll: () =>
+    fetch("/api/notifications/read", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ all: true }) }).then((r) => j<{ ok: true }>(r)),
 };
 
 import { getLang, localeTag } from "./i18n";

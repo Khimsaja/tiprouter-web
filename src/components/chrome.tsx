@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Moon, Sun, Send } from "lucide-react";
 import { useSession } from "../lib/session";
 import { LanguageToggle, useLang } from "../lib/i18n";
+import NotifBell from "./NotifBell";
 
 function ThemeToggle() {
   const { t } = useLang();
@@ -66,6 +67,7 @@ export function SiteHeader() {
         <Link className="btn primary sm" to="/beli">{t("Beli Sekarang")}</Link>
         <LanguageToggle />
         <ThemeToggle />
+        {me && <NotifBell />}
       </div>
     </header>
   );

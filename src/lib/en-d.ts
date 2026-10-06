@@ -362,4 +362,13 @@ export const EN_D: Record<string, string> = {
     "Paste the config above into opencode.json (in your project folder, or globally at ~/.config/opencode/).",
   "Di OpenCode jalankan /models dan pilih tiprouter/<model> — misalnya tiprouter/muse-spark-1.3.":
     "In OpenCode run /models and pick tiprouter/<model> — e.g. tiprouter/muse-spark-1.3.",
+  "Notifikasi": "Notifications",
+  "Tandai semua dibaca": "Mark all read",
+  "Lihat semua": "View all",
+  "Belum ada notifikasi.": "No notifications yet.",
+  "Pengumuman admin, bonus referral, status pembayaran, dan pengingat key.":
+    "Admin announcements, referral bonuses, payment status, and key reminders.",
+  "{n} belum dibaca": "{n} unread",
+  "Semua sudah dibaca": "All caught up",
+  "Muat lagi": "Load more",
 };

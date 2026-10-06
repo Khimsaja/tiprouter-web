@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical } from "lucide-react";
+import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical, Bell } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useLang } from "../lib/i18n";
 import { PublicLayout } from "./chrome";
@@ -14,6 +14,7 @@ const LINKS = [
   { to: "/dashboard/panduan", label: "Panduan", icon: BookOpenText },
   { to: "/bansos", label: "Gacha Bansos", icon: Gift },
   { to: "/referral", label: "Referral", icon: Users },
+  { to: "/notifikasi", label: "Notifikasi", icon: Bell },
   { to: "/profile", label: "Profil", icon: CircleUserRound, group: "Akun" },
 ];
 

@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import Syarat from "./pages/Syarat";
 import ProxyPage from "./pages/Proxy";
 import Referral from "./pages/Referral";
+import Notifikasi from "./pages/Notifikasi";
 import Playground from "./pages/Playground";
 import "./index.css";
 
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
       { path: "/gacha", element: <Navigate to="/bansos" replace /> },
       { path: "/profile", element: <Profile /> },
       { path: "/referral", element: <Referral /> },
+      { path: "/notifikasi", element: <Notifikasi /> },
     ],
   },
   { path: "*", element: <NotFound /> },
