@@ -7,6 +7,7 @@ import DashLayout from "./components/DashLayout";
 import Landing from "./pages/Landing";
 import Bansos from "./pages/Bansos";
 import Spinwheel from "./pages/Spinwheel";
+import Spin500 from "./pages/Spin500";
 import Login from "./pages/Login";
 import Beli from "./pages/Beli";
 import Dashboard from "./pages/Dashboard";
@@ -19,6 +20,7 @@ import Syarat from "./pages/Syarat";
 import ProxyPage from "./pages/Proxy";
 import Referral from "./pages/Referral";
 import Notifikasi from "./pages/Notifikasi";
+import Riwayat from "./pages/Riwayat";
 import Statistik from "./pages/Statistik";
 import Playground from "./pages/Playground";
 import "./index.css";
@@ -43,6 +45,7 @@ const router = createBrowserRouter([
   { path: "/", element: <Landing /> },
   { path: "/bansos", element: <Bansos /> },
   { path: "/spinwheel", element: <Spinwheel /> },
+  { path: "/spin500", element: <Spin500 /> },
   { path: "/login", element: <Login /> },
   { path: "/beli", element: <Beli /> },
   { path: "/syarat", element: <Syarat /> },
@@ -59,6 +62,7 @@ const router = createBrowserRouter([
       { path: "/dashboard/models", element: <Models /> },
       { path: "/dashboard/playground", element: <Playground embedded /> },
       { path: "/dashboard/panduan", element: <Panduan /> },
+      { path: "/dashboard/riwayat", element: <Riwayat /> },
       { path: "/gacha", element: <Navigate to="/bansos" replace /> },
       { path: "/profile", element: <Profile /> },
       { path: "/referral", element: <Referral /> },

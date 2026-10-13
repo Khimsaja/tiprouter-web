@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical, Bell } from "lucide-react";
+import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical, Bell, History } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useLang } from "../lib/i18n";
 import { PublicLayout } from "./chrome";
@@ -11,6 +11,7 @@ const LINKS = [
   { to: "/dashboard/usage", label: "Usage", icon: ListOrdered },
   { to: "/dashboard/models", label: "Model", icon: Sparkles },
   { to: "/dashboard/playground", label: "Playground", icon: FlaskConical },
+  { to: "/dashboard/riwayat", label: "Riwayat", icon: History },
   { to: "/dashboard/panduan", label: "Panduan", icon: BookOpenText },
   { to: "/bansos", label: "Gacha Bansos", icon: Gift },
   { to: "/referral", label: "Referral", icon: Users },

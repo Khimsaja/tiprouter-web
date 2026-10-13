@@ -55,6 +55,7 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
   "/dashboard/usage": { id: "Usage — TipRouter", en: "Usage — TipRouter" },
   "/dashboard/models": { id: "Model — TipRouter", en: "Models — TipRouter" },
   "/dashboard/panduan": { id: "Panduan — TipRouter", en: "Guide — TipRouter" },
+  "/dashboard/riwayat": { id: "Riwayat — TipRouter", en: "History — TipRouter" },
   "/profile": { id: "Profil — TipRouter", en: "Profile — TipRouter" },
   "/referral": {
     id: "Referral — TipRouter",

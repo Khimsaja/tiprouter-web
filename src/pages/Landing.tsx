@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Send, Ticket, X } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
 import { localeTag, tr, useLang } from "../lib/i18n";
 import { usePublicStats } from "../lib/usePublicStats";
+import { useActivePromos } from "../lib/useActivePromos";
+import { promoDiscountLabel, usdIdr, toUsd } from "../lib/api";
 
 const CSS = `
 .ld-refbar{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px;font-size:13.5px;color:var(--mut);margin-bottom:14px;line-height:1.5}
@@ -18,9 +21,22 @@ const CSS = `
 .ld-sub{margin-top:16px;font-size:16.5px;line-height:1.6;color:var(--mut);max-width:480px}
 .ld-hero-cta{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
 .ld-hero-note{margin-top:14px;font-size:13px;color:var(--faint)}
-.ld-hero-stats{display:grid;grid-template-columns:repeat(4,auto);gap:10px 26px;margin-top:34px}
-.ld-hero-stats .n{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.ld-hero-stats{display:grid;grid-template-columns:repeat(5,auto);gap:10px 26px;margin-top:34px}
+.ld-hero-stats .n{font-size:26px;font-weight:800;letter-spacing:-.02em}
 .ld-hero-stats .l{font-size:12px;color:var(--faint);margin-top:2px}
+.tgmodal-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:90;display:flex;align-items:center;justify-content:center;padding:20px;animation:tgfade .25s ease}
+.tgmodal{position:relative;max-width:380px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:32px 28px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35);animation:tgpop .3s cubic-bezier(.2,1.4,.4,1)}
+.tgmodal .tic{width:64px;height:64px;border-radius:50%;background:#229ED9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#fff}
+.tgmodal h3{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+.tgmodal p{font-size:14px;color:var(--mut);line-height:1.55;margin:0 0 20px}
+.tgmodal .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.tgmodal .close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--faint);cursor:pointer;padding:6px;font-size:18px;line-height:1}
+.tgmodal .close:hover{color:var(--txt)}
+.tgmodal .later{display:block;margin-top:12px;background:none;border:0;color:var(--faint);font-size:13px;cursor:pointer;font-family:inherit}
+.tgmodal .later:hover{color:var(--mut);text-decoration:underline}
+@keyframes tgfade{from{opacity:0}to{opacity:1}}
+@keyframes tgpop{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media (max-width:560px){.tgmodal{padding:26px 20px}}
 .ld-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .ld-stats-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .ld-stats-head .r{font-size:12px;color:var(--faint)}
@@ -93,6 +109,7 @@ const CSS = `
 .ld-price{margin-top:0;display:flex;flex-direction:column;position:relative}
 .ld-price .plan-name{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .ld-price .amount{font-size:33px;font-weight:800;letter-spacing:-.03em;margin-top:12px}
+.ld-price .usd{font-size:13px;color:var(--faint);margin-top:2px;font-weight:600}
 .ld-price .per{font-size:12.5px;color:var(--faint);margin-top:4px}
 .ld-price ul{list-style:none;margin:20px 0 24px;display:grid;gap:9px}
 .ld-price ul li{font-size:14px;color:var(--mut);padding-left:22px;position:relative;line-height:1.45}
@@ -102,6 +119,15 @@ const CSS = `
 .ld-price.pop .btn{background:var(--btn);color:var(--btn-t);border-color:var(--btn)}
 .ld-pop-tag{position:absolute;top:-11px;right:20px;background:var(--txt);color:var(--bg);border:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 12px;border-radius:999px}
 .ld-price-note{font-size:13px;color:var(--faint);line-height:1.6;margin-top:16px;text-align:center}
+.ld-promo-strip{display:grid;gap:10px;margin-top:20px}
+.ld-promo{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--border);border-radius:12px;background:var(--hover)}
+.ld-promo-ic{flex:none;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(52,211,153,.12);color:#34d399}
+.ld-promo-tx{flex:1;min-width:0}
+.ld-promo-code{font-family:var(--font-mono);font-weight:800;font-size:15px;letter-spacing:.04em}
+.ld-promo-code span{font-family:var(--font-sans);font-weight:600;font-size:13px;color:var(--mut);letter-spacing:0;margin-left:10px}
+.ld-promo-left{font-size:12.5px;color:var(--faint);margin-top:3px}
+.ld-promo .btn{flex:none}
+@media(max-width:640px){.ld-promo{flex-wrap:wrap}.ld-promo .btn{width:100%}}
 .ld-compare{margin-top:20px;padding:8px 24px}
 .ld-compare .row{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--border);font-size:14px;align-items:center}
 .ld-compare .row:first-child{border-top:none}
@@ -279,35 +305,40 @@ const PRICES = [
   {
     name: "Trial · 1 hari",
     amount: "Rp3.000",
+    idr: 3000,
     per: "Rp3.000 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 1 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Basic · 3 hari",
-    amount: "Rp6.000",
-    per: "Rp2.000 per hari · sekali bayar",
+    amount: "Rp8.000",
+    idr: 8000,
+    per: "Rp2.667 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 3 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Plus · 7 hari",
-    amount: "Rp10.000",
-    per: "Rp1.429 per hari · sekali bayar",
+    amount: "Rp15.000",
+    idr: 15000,
+    per: "Rp2.143 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 7 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Essential · 14 hari",
-    amount: "Rp18.000",
-    per: "Rp1.286 per hari · sekali bayar",
+    amount: "Rp24.000",
+    idr: 24000,
+    per: "Rp1.714 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 14 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Pro · 30 hari",
-    amount: "Rp30.000",
-    per: "Rp1.000 per hari · sekali bayar",
+    amount: "Rp40.000",
+    idr: 40000,
+    per: "Rp1.333 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 30 hari", "QRIS otomatis", "Perpanjang key yang sama"],
     pop: true,
   },
@@ -334,11 +365,22 @@ const FAQS = [
     q: "Boleh dipakai untuk jualan lagi?",
     a: "Key untuk pemakaian pribadi dan tim kecil kamu. Kalau butuh skala bisnis atau dijual lagi, chat admin dulu supaya diatur paket yang cocok.",
   },
+  {
+    q: "Apakah kompatibel dengan 9Router?",
+    a: "Tidak. TipRouter dan 9Router adalah dua produk yang berbeda dan tidak saling kompatibel. Key TipRouter hanya berfungsi di endpoint TipRouter (tiprouter.my.id/v1), tidak bisa dipakai di 9Router, begitu juga sebaliknya.",
+  },
 ];
 
 export default function Landing() {
   const { t } = useLang();
   const rootRef = useRef<HTMLDivElement>(null);
+  // Popup channel Telegram: tampil setiap buka web.
+  const [showTg, setShowTg] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowTg(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+  const dismissTg = () => setShowTg(false);
   const [refCode] = useState<string | null>(() => {
     try {
       const q = new URLSearchParams(window.location.search).get("ref");
@@ -346,6 +388,17 @@ export default function Landing() {
       return localStorage.getItem("tr_ref");
     } catch { return null; }
   });
+
+  // Kode promo aktif + sisa kuota (poll 60 dtk).
+  const promos = useActivePromos();
+
+  // Kurs USD->IDR buat tampilan konversi harga (display only).
+  const [fx, setFx] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    usdIdr().then((r) => { if (alive) setFx(r); });
+    return () => { alive = false; };
+  }, []);
 
   // Model IDs come live from the 'tiprouter new' template; fallback if the API is unreachable.
   const [modelIds, setModelIds] = useState<string[]>(FALLBACK_MODELS);
@@ -374,6 +427,8 @@ export default function Landing() {
   }, []);
 
   // Reveal-on-scroll, like the original IntersectionObserver pass.
+  // Re-run when modelIds loads: cards added after the async
+  // /api/template-models fetch were never observed and stayed invisible.
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
@@ -390,7 +445,7 @@ export default function Landing() {
     );
     root.querySelectorAll(".reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, []);
+  }, [modelIds]);
 
   return (
     <PublicLayout wide>
@@ -425,12 +480,16 @@ export default function Landing() {
               <p className="ld-hero-note">{t("Satu key untuk semua model. Coba gratis dulu lewat gacha bansos.")}</p>
               <div className="ld-hero-stats">
                 <div>
-                  <p className="n">15</p>
+                  <p className="n">{modelIds.length}</p>
                   <p className="l">{t("model AI aktif")}</p>
                 </div>
                 <div>
                   <p className="n">150</p>
                   <p className="l">{t("request per menit")}</p>
+                </div>
+                <div>
+                  <p className="n">4</p>
+                  <p className="l">{t("request barengan per key")}</p>
                 </div>
                 <div>
                   <p className="n">{t("1 mnt")}</p>
@@ -462,7 +521,7 @@ export default function Landing() {
           </div>
           <div className="fact">
             <p className="k">Models</p>
-            <p className="v">{t("15 model")}</p>
+            <p className="v">{t("{n} model", { n: modelIds.length })}</p>
             <p className="s">{t("semua terbuka di setiap paket")}</p>
           </div>
           <div className="fact">
@@ -587,12 +646,38 @@ export default function Landing() {
           <p className="ld-lead">
             {t("Semua paket membuka semua model yang sama. Bedanya cuma masa aktif, makin lama makin murah per hari. Bayar sekali; tidak ada yang auto-perpanjang.")}
           </p>
+          {promos && promos.length > 0 && (
+            <div className="ld-promo-strip">
+              {promos.map((p) => (
+                <div className="ld-promo" key={p.code}>
+                  <span className="ld-promo-ic">
+                    <Ticket size={20} />
+                  </span>
+                  <div className="ld-promo-tx">
+                    <p className="ld-promo-code">
+                      {p.code}
+                      <span>{t("Diskon {d} semua paket", { d: promoDiscountLabel(p) })}</span>
+                    </p>
+                    <p className="ld-promo-left">
+                      {p.remaining != null
+                        ? t("Sisa {n} dari {m} pemakaian", { n: p.remaining, m: p.max_uses ?? 0 })
+                        : t("Kuota tanpa batas")}
+                    </p>
+                  </div>
+                  <Link className="btn sm" to="/beli">
+                    {t("Pakai kode")}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="ld-price-grid">
             {PRICES.map((p) => (
               <div className={"card ld-price reveal" + (p.pop ? " pop" : "")} key={p.name}>
                 {p.pop && <span className="ld-pop-tag">{t("Paling hemat")}</span>}
                 <p className="plan-name">{t(p.name)}</p>
                 <p className="amount">{t(p.amount)}</p>
+                {toUsd(p.idr, fx) && <p className="usd">{toUsd(p.idr, fx)}</p>}
                 <p className="per">{t(p.per)}</p>
                 <ul>
                   {p.features.map((f) => (
@@ -634,7 +719,7 @@ export default function Landing() {
             </div>
             <div className="row">
               <span className="k">{t("Jumlah model")}</span>
-              <span className="us">{t("15 model, satu key")}</span>
+              <span className="us">{t("{n} model, satu key", { n: modelIds.length })}</span>
               <span className="them">{t("Satu key per provider")}</span>
             </div>
             <div className="row">
@@ -669,12 +754,26 @@ export default function Landing() {
           <h2>
             {t("Berhenti kena limit")} <em>{t("hari ini.")}</em>
           </h2>
-          <p>{t("Satu key, 15 model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.")}</p>
+          <p>{t("Satu key, {n} model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.", { n: modelIds.length })}</p>
           <Link className="btn" to="/beli">
             {t("Beli Sekarang")}
           </Link>
         </div>
       </div>
+      {showTg && (
+        <div className="tgmodal-ov" onClick={dismissTg}>
+          <div className="tgmodal" onClick={(e) => e.stopPropagation()}>
+            <button className="close" onClick={dismissTg} aria-label={t("Tutup")}><X size={20} /></button>
+            <div className="tic"><Send size={30} /></div>
+            <h3>{t("Join channel Telegram kami")}</h3>
+            <p>{t("Dapatkan info promo, update model terbaru, dan pengumuman penting langsung di Telegram.")}</p>
+            <a className="btn primary" href="https://t.me/tiprouter" target="_blank" rel="noopener" onClick={dismissTg}>
+              <Send size={16} /> {t("Join @tiprouter")}
+            </a>
+            <button className="later" onClick={dismissTg}>{t("Nanti saja")}</button>
+          </div>
+        </div>
+      )}
     </PublicLayout>
   );
 }

@@ -8,6 +8,7 @@ export type KeyItem = {
   id: string;
   label: string;
   prefix: string | null;
+  hint: string | null;
   createdAt: string;
   expiresAt: string | null;
   requestsPerMinute: number | null;
@@ -24,7 +25,24 @@ export type KeyItem = {
 export type Config = { google: boolean; github: boolean; telegramBot: string | null; apikey: boolean; turnstileSiteKey?: string | null; crypto?: { solana: boolean; base: boolean } };
 
 export type CryptoInfo = { chain: string; address: string; usdcAmount: number; rate?: number; reference?: string; solanaPayUrl?: string };
-export type OrderCreated = { id: string; amount: number; qrisId: string; expiresAt: string; packageName: string; days: number; payMethod?: string; crypto?: CryptoInfo; address?: string; usdcAmount?: number; rate?: number; reference?: string; solanaPayUrl?: string; chain?: string };
+export type OrderCreated = { id: string; orderCode?: string; amount: number; qrisId: string; expiresAt: string; packageName: string; days: number; payMethod?: string; promoCode?: string | null; discountIdr?: number; finalPrice?: number; crypto?: CryptoInfo; address?: string; usdcAmount?: number; rate?: number; reference?: string; solanaPayUrl?: string; chain?: string };
+export type PromoCheck = { valid: boolean; code?: string; kind?: string; value?: number; discount_idr?: number; final_price?: number; error?: string };
+export type ActivePromo = {
+  code: string; kind: string; value: number;
+  max_uses: number | null; used_count: number; remaining: number | null;
+  expires_at: string | null; note: string | null;
+};
+export function promoDiscountLabel(p: Pick<ActivePromo, "kind" | "value">): string {
+  return p.kind === "percent" ? `${p.value}%` : `Rp${p.value.toLocaleString("id-ID")}`;
+}
+export type HistoryOrder = {
+  id: string; created_at: string; package_key: string; base_amount: number;
+  amount: number; discount_idr: number; promo_code: string | null; status: string;
+  tx_id: string | null; order_code: string | null; paid_at: string | null;
+  extend_key_id: string | null; pay_method: string | null;
+};
+export type HistoryGacha = { duration_hours: number; created_at: string; expires_at: string };
+export type HistoryData = { orders: HistoryOrder[]; gacha: HistoryGacha[] };
 export type ReferralInfo = {
   code: string; link: string; invites: number;
   successfulPurchases: number; bonusDaysEarned: number;
@@ -79,8 +97,8 @@ export type ProxyResult = {
 };
 
 export type OrderStatus = {  status: "pending" | "paid" | "minted" | "expired" | "cancelled" | "paid_late";
-  amount: number; packageKey: string; qrisId?: string; expiresAt: string; key?: string; keyExpires?: string;
-  payMethod: string; crypto?: CryptoInfo;
+  amount: number; packageKey: string; qrisId?: string; expiresAt: string; key?: string; keyExpires?: string; extended?: boolean;
+  payMethod: string; crypto?: CryptoInfo; orderCode?: string;
 };
 
 export type GachaState =
@@ -89,10 +107,10 @@ export type GachaState =
 
 export const PACKAGES = [
   { key: "trial", name: "Trial", days: 1, price: 3000, blurb: "Buat nyobain dulu" },
-  { key: "basic", name: "Basic", days: 3, price: 6000, blurb: "Paket santai" },
-  { key: "plus", name: "Plus", days: 7, price: 10000, blurb: "Seminggu penuh" },
-  { key: "essential", name: "Essential", days: 14, price: 18000, blurb: "Dua minggu" },
-  { key: "pro", name: "Pro", days: 30, price: 30000, blurb: "Paling hemat per hari" },
+  { key: "basic", name: "Basic", days: 3, price: 8000, blurb: "Paket santai" },
+  { key: "plus", name: "Plus", days: 7, price: 15000, blurb: "Seminggu penuh" },
+  { key: "essential", name: "Essential", days: 14, price: 24000, blurb: "Dua minggu" },
+  { key: "pro", name: "Pro", days: 30, price: 40000, blurb: "Paling hemat per hari" },
 ] as const;
 
 async function j<T>(res: Response): Promise<T> {
@@ -107,16 +125,26 @@ async function j<T>(res: Response): Promise<T> {
 export const api = {
   config: () => fetch("/api/config").then((r) => j<Config>(r)),
   me: () => fetch("/api/me").then((r) => j<Me>(r)),
-  keys: () => fetch("/api/keys").then((r) => j<{ keys: KeyItem[]; reason?: string }>(r)),
+  keys: () => fetch("/api/keys").then((r) => j<{ keys: KeyItem[]; unlinked?: KeyItem[]; reason?: string }>(r)),
   keySecret: (id: string) =>
     fetch("/api/keys/" + encodeURIComponent(id) + "/secret").then((r) => j<{ secret: string }>(r)),
   linkKey: (key: string, turnstileToken?: string | null) =>
-    fetch("/api/keys/link", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, turnstileToken: turnstileToken ?? undefined }) }).then((r) => j<{ ok: true; keyId: string; label: string }>(r)),
+    fetch("/api/keys/link", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, turnstileToken: turnstileToken ?? undefined }) }).then((r) => j<{ ok: true; keyId: string; label: string; claimed?: boolean }>(r)),
+  unlinkKey: (id: string) =>
+    fetch("/api/keys/" + encodeURIComponent(id) + "/unlink", { method: "POST" }).then((r) => j<{ ok: true }>(r)),
+  relinkKey: (id: string) =>
+    fetch("/api/keys/" + encodeURIComponent(id) + "/relink", { method: "POST" }).then((r) => j<{ ok: true }>(r)),
+  disconnectProvider: (provider: string) =>
+    fetch("/api/auth/disconnect", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ provider }) }).then((r) => j<{ ok: true }>(r)),
   logout: () => fetch("/auth/logout", { method: "POST" }),
   apikeyLogin: (key: string, turnstileToken?: string | null) =>
     fetch("/auth/apikey", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, turnstileToken: turnstileToken ?? undefined }) }).then((r) => j<{ ok: true }>(r)),
-  createOrder: (pkg: string, email: string, turnstileToken?: string | null, payMethod?: string) =>
-    fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ package: pkg, email, turnstileToken: turnstileToken ?? undefined, payMethod }) }).then((r) => j<OrderCreated>(r)),
+  createOrder: (pkg: string, email: string, turnstileToken?: string | null, payMethod?: string, extendKeyId?: string, promo?: string | null) =>
+    fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ package: pkg, email, turnstileToken: turnstileToken ?? undefined, payMethod, extendKeyId: extendKeyId ?? undefined, promo: promo ?? undefined }) }).then((r) => j<OrderCreated>(r)),
+  promoValidate: (code: string, pkg: string) =>
+    fetch("/api/promo/validate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code, package: pkg }) }).then((r) => j<PromoCheck>(r)),
+  promoActive: () => fetch("/api/promo/active").then((r) => j<{ promos: ActivePromo[] }>(r)),
+  history: () => fetch("/api/history").then((r) => j<HistoryData>(r)),
   orderStatus: (id: string) => fetch("/api/orders/" + encodeURIComponent(id)).then((r) => j<OrderStatus>(r)),
   cancelOrder: (id: string) => fetch("/api/orders/" + encodeURIComponent(id) + "/cancel", { method: "POST" }).then((r) => j<{ status: string }>(r)),
   gacha: () => fetch("/api/gacha").then((r) => j<GachaState>(r)),
@@ -143,6 +171,7 @@ export interface PublicModelStat {
   model: string;
   hits: number;
   ok: number;
+  tokens: number;
 }
 
 export interface PublicStats {
@@ -159,6 +188,25 @@ export interface PublicStats {
 import { getLang, localeTag } from "./i18n";
 
 export const rp = (n: number) => (getLang() === "en" ? "IDR " + n.toLocaleString("en-US") : "Rp" + n.toLocaleString("id-ID"));
+
+// --- Kurs USD->IDR buat konversi tampilan harga (display only, cache 1 jam) ---
+let fxCache: { at: number; rate: number } | null = null;
+export async function usdIdr(): Promise<number | null> {
+  if (fxCache && Date.now() - fxCache.at < 3600_000) return fxCache.rate;
+  try {
+    const r = await fetch("/api/fx-rate");
+    if (!r.ok) return fxCache?.rate ?? null;
+    const d = (await r.json()) as { usd_idr?: number };
+    if (typeof d.usd_idr === "number" && d.usd_idr > 0) {
+      fxCache = { at: Date.now(), rate: d.usd_idr };
+      return d.usd_idr;
+    }
+  } catch { /* abaikan, pakai cache/null */ }
+  return fxCache?.rate ?? null;
+}
+// Format "≈ $2.47" dari harga rupiah; null kalau kurs belum ada.
+export const toUsd = (idr: number, rate: number | null): string | null =>
+  rate ? "≈ $" + (idr / rate).toFixed(2) : null;
 export const fmtNum = (n: number | null | undefined) => (n === null || n === undefined ? "-" : Number(n).toLocaleString(localeTag()));
 export const fmtDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleString(localeTag(), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";

@@ -15,11 +15,13 @@ const METHOD_NAMES: Record<string, string> = { google: "Google", github: "GitHub
 const PROVIDER_NAMES: Record<string, string> = { google: "Google", github: "GitHub", apikey: "API key" };
 
 export default function Profile() {
-  const { me, logout } = useSession();
+  const { me, logout, refresh } = useSession();
   const { t } = useLang();
   const navigate = useNavigate();
   const [cfg, setCfg] = useState<Config | null>(null);
   const [confirmOut, setConfirmOut] = useState(false);
+  const [unlinkProvider, setUnlinkProvider] = useState<"google" | "github" | null>(null);
+  const [unlinkErr, setUnlinkErr] = useState("");
   const tgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,10 +81,28 @@ export default function Profile() {
             ? (["google", "github", "apikey"] as const).map((p) => {
                 const connected = me.providers.includes(p);
                 const action = connected ? (
-                  <span className="chip ok">{t("Terhubung")}</span>
+                  p === "apikey" ? (
+                    <span className="chip ok">{t("Terhubung")}</span>
+                  ) : (
+                    <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                      <span className="chip ok">{t("Terhubung")}</span>
+                      <button
+                        className="btn sm"
+                        type="button"
+                        onClick={() => {
+                          setUnlinkErr("");
+                          setUnlinkProvider(p);
+                        }}
+                      >
+                        {t("Putuskan")}
+                      </button>
+                    </span>
+                  )
                 ) : p === "apikey" ? (
                   <span className="chip">{t("dari bot")}</span>
-                ) : cfg[p] ? null : (
+                ) : cfg[p] ? (
+                  <a className="btn" href={`/auth/${p}/connect`}>{t("Hubungkan")}</a>
+                ) : (
                   <span className="chip warn">{t("Belum tersedia")}</span>
                 );
                 return (
@@ -140,6 +160,29 @@ export default function Profile() {
           navigate("/login");
         }}
       />
+      <ConfirmModal
+        open={unlinkProvider !== null}
+        title={t("Putuskan akun {name}?", { name: unlinkProvider === "google" ? "Google" : "GitHub" })}
+        body={t("Akun {name} tidak bisa dipakai lagi buat masuk. Key yang tampil karena email akun ini juga ikut hilang dari dashboard sampai kamu menghubungkan akun dengan email yang sama. Key-nya sendiri tetap aktif.", { name: unlinkProvider === "google" ? "Google" : "GitHub" })}
+        confirmLabel={t("Ya, putuskan")}
+        onCancel={() => setUnlinkProvider(null)}
+        onConfirm={async () => {
+          if (!unlinkProvider) return;
+          try {
+            await api.disconnectProvider(unlinkProvider);
+            setUnlinkProvider(null);
+            await refresh();
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : "";
+            setUnlinkErr(
+              msg.includes("last_login_method")
+                ? t("Ini satu-satunya cara kamu masuk. Hubungkan akun lain dulu sebelum melepasnya.")
+                : t("Gagal memutuskan akun. Coba lagi.")
+            );
+          }
+        }}
+      />
+      {unlinkErr ? <p className="err show" style={{ marginTop: 12 }}>{unlinkErr}</p> : null}
     </>
   );
 }

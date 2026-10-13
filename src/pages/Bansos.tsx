@@ -26,6 +26,7 @@ const SPIN_ERR: Record<string, string> = {
   gacha_off: "Gacha lagi belum aktif, coba sebentar lagi.",
   unauthorized: "Sesi habis, login lagi ya.",
   turnstile_failed: "Verifikasi anti-bot gagal. Selesaikan verifikasinya, lalu coba lagi.",
+  gmail_only: "Gacha cuma buat akun dengan email @gmail.com. Hubungkan akun Google kamu di menu Profil.",
 };
 
 function fmtRemain(sec: number) {
@@ -336,6 +337,10 @@ export default function Bansos() {
             </li>
             <li>
               {t("Key gacha itu")} <b>{t("key pribadi")}</b>{t(": unlimited token, semua model paket berbayar, mati sendiri pas durasinya habis.")}
+            </li>
+            <li>
+              {t("Batas pemakaian key gacha:")} <b>10 request/menit</b> {t("dan")} <b>1 {t("koneksi bersamaan")}</b>
+              {t(" — demi kenyamanan seluruh pengguna.")}
             </li>
             <li>{t("Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.")}</li>
             <li>

@@ -1,12 +1,13 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Check, Copy, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, KeyRound, Link2, Unlink } from "lucide-react";
 import { PageHead } from "../components/DashLayout";
+import ConfirmModal from "../components/ConfirmModal";
 import Turnstile, { type TurnstileHandle } from "../components/Turnstile";
 import { api, daysLeft, fmtDate, fmtNum, type KeyItem } from "../lib/api";
 import { tr, useLang } from "../lib/i18n";
 
-type KeysData = { keys: KeyItem[]; reason?: string };
+type KeysData = { keys: KeyItem[]; unlinked: KeyItem[]; reason?: string };
 
 function AddKeyCard({ onLinked }: { onLinked: () => void }) {
   const { t } = useLang();
@@ -30,7 +31,11 @@ function AddKeyCard({ onLinked }: { onLinked: () => void }) {
     setBusy(true);
     try {
       const d = await api.linkKey(key.trim(), tsToken);
-      setOk(t("Key {label} berhasil dihubungkan.", { label: d.label || "" }));
+      setOk(
+        d.claimed
+          ? t("Key {label} dipindahkan dari akun tamu ke akun ini.", { label: d.label || "" })
+          : t("Key {label} berhasil dihubungkan.", { label: d.label || "" })
+      );
       setKey("");
       tsRef.current?.reset();
       setTsToken(null);
@@ -89,10 +94,10 @@ function useKeys(refresh: number): KeysData | null {
     api
       .keys()
       .then((d) => {
-        if (alive) setData({ keys: d.keys || [], reason: d.reason });
+        if (alive) setData({ keys: d.keys || [], unlinked: (d as { unlinked?: KeyItem[] }).unlinked || [], reason: d.reason });
       })
       .catch(() => {
-        if (alive) setData({ keys: [], reason: "http_error" });
+        if (alive) setData({ keys: [], unlinked: [], reason: "http_error" });
       });
     return () => {
       alive = false;
@@ -113,12 +118,12 @@ function KeySecretRow({ k }: { k: KeyItem }) {
     return (
       <div className="kv">
         <span className="k">{t("Prefix")}</span>
-        <span className="v mono">{k.prefix ? k.prefix + "........" : "-"}</span>
+        <span className="v mono">{k.prefix ? k.prefix + "…" + (k.hint ?? "") + "········" : "-"}</span>
       </div>
     );
   }
 
-  const masked = (k.prefix ?? "tip_") + "••••••••••••";
+  const masked = (k.prefix ?? "tip_") + "…" + (k.hint ?? "") + "••••••••";
 
   async function ensureSecret(): Promise<string | null> {
     if (secret) return secret;
@@ -206,6 +211,96 @@ function expiryText(k: KeyItem) {
     : tr("Sampai {date} ({days} hari lagi)", { date: fmtDate(k.expiresAt), days: left ?? 0 });
 }
 
+function UnlinkKeyButton({ k, onDone }: { k: KeyItem; onDone: () => void }) {
+  const { t } = useLang();
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  return (
+    <>
+      <button
+        className="btn sm"
+        type="button"
+        disabled={busy}
+        onClick={() => setConfirm(true)}
+        title={t("Lepas key dari akun ini")}
+      >
+        <Unlink size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+        {t("Lepas")}
+      </button>
+      <ConfirmModal
+        open={confirm}
+        title={t("Lepas key ini?")}
+        body={t("Key {label} tidak akan tampil lagi di dashboard akun ini. Key-nya sendiri tetap aktif dan bisa dihubungkan lagi kapan aja.", { label: k.label })}
+        confirmLabel={t("Ya, lepaskan")}
+        onCancel={() => setConfirm(false)}
+        onConfirm={async () => {
+          setConfirm(false);
+          setBusy(true);
+          try {
+            await api.unlinkKey(k.id);
+          } finally {
+            setBusy(false);
+          }
+          onDone();
+        }}
+      />
+    </>
+  );
+}
+
+function UnlinkedSection({ items, onRelink }: { items: KeyItem[]; onRelink: () => void }) {
+  const { t } = useLang();
+  const [open, setOpen] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  if (items.length === 0) return null;
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{ all: "unset", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, width: "100%" }}
+      >
+        <Unlink size={16} />
+        <h2 style={{ margin: 0 }}>
+          {t("Key yang dilepas")} ({items.length})
+        </h2>
+        <span style={{ marginLeft: "auto", fontSize: 13, opacity: 0.7 }}>{open ? "▾" : "▸"}</span>
+      </button>
+      {open ? (
+        <div style={{ marginTop: 12 }}>
+          {items.map((k) => (
+            <div className="row" key={k.id}>
+              <div>
+                <p className="who mono">{k.label}</p>
+                <p className="meta">{k.source?.kind === "gacha" ? t("Gacha Bansos") : t("Pembelian")}</p>
+              </div>
+              <div className="right">
+                <button
+                  className="btn sm"
+                  type="button"
+                  disabled={busyId === k.id}
+                  onClick={async () => {
+                    setBusyId(k.id);
+                    try {
+                      await api.relinkKey(k.id);
+                    } finally {
+                      setBusyId(null);
+                    }
+                    onRelink();
+                  }}
+                >
+                  <Link2 size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+                  {busyId === k.id ? t("Menghubungkan...") : t("Hubungkan lagi")}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ReasonMsg({ reason }: { reason?: string }) {
   const { t } = useLang();
   if (reason === "telegram_not_connected")
@@ -271,7 +366,7 @@ export default function Keys() {
               ) : (
                 <div className="kv">
                   <span className="k">{t("Prefix")}</span>
-                  <span className="v mono">{k.prefix ? k.prefix + "........" : "-"}</span>
+                  <span className="v mono">{k.prefix ? k.prefix + "…" + (k.hint ?? "") + "········" : "-"}</span>
                 </div>
               )}
               <div className="kv">
@@ -304,6 +399,9 @@ export default function Keys() {
                 <span className="k">{t("Model tersedia")}</span>
                 <span className="v">{t("{n} model", { n: k.modelCount || 0 })}</span>
               </div>
+              <div style={{ marginTop: 10 }}>
+                <UnlinkKeyButton k={k} onDone={() => setRefresh((r) => r + 1)} />
+              </div>
             </div>
           </Fragment>
         ))}
@@ -323,6 +421,7 @@ export default function Keys() {
         <h2>{t("API key kamu")}</h2>
         <div>{body}</div>
       </div>
+      <UnlinkedSection items={data?.unlinked ?? []} onRelink={() => setRefresh((r) => r + 1)} />
       <AddKeyCard onLinked={() => setRefresh((r) => r + 1)} />
     </>
   );

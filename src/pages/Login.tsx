@@ -79,6 +79,7 @@ export default function Login() {
     setBusy(true);
     try {
       await api.apikeyLogin(key, tsToken);
+      setKey("");
       await refresh();
       navigate("/dashboard");
     } catch (e) {

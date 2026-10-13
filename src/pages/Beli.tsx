@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Ticket } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
 import Turnstile, { type TurnstileHandle } from "../components/Turnstile";
-import { api, rp, PACKAGES, type Config, type OrderStatus, type CryptoInfo } from "../lib/api";
+import { api, rp, PACKAGES, promoDiscountLabel, usdIdr, toUsd, type Config, type OrderStatus, type CryptoInfo, type KeyItem } from "../lib/api";
 import QRCode from "react-qr-code";
 import { useSession } from "../lib/session";
+import { useActivePromos } from "../lib/useActivePromos";
 import { localeTag, useLang } from "../lib/i18n";
 
 // Package-grid / QR styles from the vanilla beli page (index.css only carries
@@ -16,6 +18,7 @@ const PAGE_STYLE = `
 .pkg.on{border-color:var(--txt);box-shadow:0 0 0 1px var(--txt)}
 .pkg-name{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 .pkg-price{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.pkg-usd{font-size:13px;font-weight:600;color:var(--faint)}
 .pkg-days{font-size:12.5px;color:var(--faint)}
 .qrimg{display:block;width:250px;height:250px;margin:14px auto;border-radius:12px;background:#fff;padding:8px;box-sizing:border-box}
 .paytabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
@@ -25,6 +28,11 @@ const PAGE_STYLE = `
 .addrbox .btn{padding:6px 12px;font-size:13px;flex-shrink:0}
 .amt{font-size:30px;font-weight:800;letter-spacing:-.02em;text-align:center}
 .count{text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--mut);margin-top:4px}
+.custombox{margin-top:14px;border:1px dashed var(--border);border-radius:12px;padding:16px;background:var(--panel)}
+.customgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:10px}
+.customgrid label{font-size:12.5px;color:var(--mut);display:block;margin-bottom:4px}
+.customgrid input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--txt);font:inherit;font-size:15px;box-sizing:border-box}
+.customnote{font-size:12.5px;color:var(--faint);margin-top:10px}
 `;
 
 const ORDER_ERR: Record<string, string> = {
@@ -37,6 +45,24 @@ const ORDER_ERR: Record<string, string> = {
   busy: "Lagi ramai, coba lagi sebentar.",
   rate_limited: "Terlalu banyak percobaan, tunggu beberapa menit.",
   turnstile_failed: "Verifikasi anti-bot gagal. Selesaikan verifikasinya, lalu coba lagi.",
+  extend_login_required: "Login dulu buat bisa perpanjang key lama.",
+  extend_not_yours: "Key yang dipilih bukan milik akunmu.",
+  extend_key_invalid: "Key yang dipilih udah nggak valid. Pilih key lain atau bikin key baru.",
+  promo_invalid: "Format kode promo nggak valid.",
+  promo_not_found: "Kode promo nggak ketemu. Cek lagi tulisannya.",
+  promo_inactive: "Kode promo ini udah dinonaktifkan.",
+  promo_expired: "Kode promo ini udah kedaluwarsa.",
+  promo_exhausted: "Kuota kode promo ini udah habis.",
+  promo_already_redeemed: "Kode promo ini udah pernah dipakai di akun / jaringan ini.",
+};
+const PROMO_ERR: Record<string, string> = {
+  promo_invalid: "Format kode promo nggak valid.",
+  promo_not_found: "Kode promo nggak ketemu. Cek lagi tulisannya.",
+  promo_inactive: "Kode promo ini udah dinonaktifkan.",
+  promo_expired: "Kode promo ini udah kedaluwarsa.",
+  promo_exhausted: "Kuota kode promo ini udah habis.",
+  promo_already_redeemed: "This promo code has already been redeemed on this account / network.",
+  rate_limited: "Terlalu banyak percobaan, tunggu beberapa menit.",
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,10 +74,27 @@ export default function Beli() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selected, setSelected] = useState<string | null>(null);
+  // Kurs USD->IDR buat tampilan konversi harga (display only).
+  const [fx, setFx] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    usdIdr().then((r) => { if (alive) setFx(r); });
+    return () => { alive = false; };
+  }, []);
   const [email, setEmail] = useState("");
   const [emailLocked, setEmailLocked] = useState(false);
   const [orderErr, setOrderErr] = useState("");
   const [creating, setCreating] = useState(false);
+  // Kode promo (opsional).
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<string | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoMsg, setPromoMsg] = useState("");
+  const [promoChecking, setPromoChecking] = useState(false);
+  // Kode promo cuma valid buat paket yang dipilih saat validasi — reset kalau paket diganti.
+  useEffect(() => { clearPromo(); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Info promo aktif + sisa kuota (poll 60 dtk).
+  const activePromos = useActivePromos();
 
   const [orderId, setOrderId] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
@@ -64,17 +107,43 @@ export default function Beli() {
   const [payStatus, setPayStatus] = useState("Menunggu pembayaran\u2026");
   const [cancelHidden, setCancelHidden] = useState(false);
   const [payVisible, setPayVisible] = useState(false);
+  const [orderCode, setOrderCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const [doneKey, setDoneKey] = useState<string | null>(null);
   const [keyExpires, setKeyExpires] = useState<string | null>(null);
+  const [wasExtended, setWasExtended] = useState(false);
+  const [myKeys, setMyKeys] = useState<KeyItem[] | null>(null);
+  const [keyMode, setKeyMode] = useState<"extend" | "new">("extend");
+  const [extendKeyId, setExtendKeyId] = useState("");
   const [copied, setCopied] = useState(false);
   const [cfg, setCfg] = useState<Config | null>(null);
   const [tsToken, setTsToken] = useState<string | null>(null);
+  // Custom package configurator
+  const [customDays, setCustomDays] = useState(30);
+  const [customRpm, setCustomRpm] = useState(150);
+  const [customConc, setCustomConc] = useState(4);
   const tsRef = useRef<TurnstileHandle>(null);
 
   useEffect(() => {
     api.config().then(setCfg).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!me) { setMyKeys(null); return; }
+    api.keys()
+      .then((d) => {
+        const list = (d.keys ?? []).filter((k) => k.status !== "revoked");
+        list.sort((a, b) => {
+          const sa = a.status === "active" ? 0 : 1, sb = b.status === "active" ? 0 : 1;
+          if (sa !== sb) return sa - sb;
+          return Date.parse(b.expiresAt ?? b.createdAt) - Date.parse(a.expiresAt ?? a.createdAt);
+        });
+        setMyKeys(list);
+        if (list.length > 0) setExtendKeyId(list[0].id);
+      })
+      .catch(() => setMyKeys([]));
+  }, [me]);
 
   const orderIdRef = useRef<string | null>(null);
   orderIdRef.current = orderId;
@@ -98,7 +167,9 @@ export default function Beli() {
 
   const showDone = useCallback((d: OrderStatus) => {
     setDoneKey(d.key ?? "");
+    setWasExtended(!!d.extended);
     setKeyExpires(d.keyExpires ?? null);
+    setOrderCode(d.orderCode ?? null);
     setPayVisible(false);
     requestAnimationFrame(() => doneCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
   }, []);
@@ -124,7 +195,7 @@ export default function Beli() {
       try {
         const d = await api.orderStatus(id);
         if (stopped) return;
-        if (d.status === "minted" && d.key) {
+        if (d.status === "minted") {
           stopped = true;
           clearInterval(cdTimer);
           clearInterval(pollTimer);
@@ -172,10 +243,12 @@ export default function Beli() {
     };
   }, [payVisible, orderId, showDone]);
 
-  const beginPayment = (id: string, amt: number, qris: string | null, expiresAt: string, scroll: boolean, method: "qris" | "solana" | "base" = "qris", ci: CryptoInfo | null = null) => {
+  const beginPayment = (id: string, amt: number, qris: string | null, expiresAt: string, scroll: boolean, method: "qris" | "solana" | "base" = "qris", ci: CryptoInfo | null = null, code: string | null = null) => {
     expiresAtRef.current = expiresAt;
     orderIdRef.current = id;
     setOrderId(id);
+    setOrderCode(code);
+    setCodeCopied(false);
     setAmount(amt);
     setQrisId(qris);
     setPayMethod(method);
@@ -196,25 +269,56 @@ export default function Beli() {
     api
       .orderStatus(resumeId)
       .then((d) => {
-        if (d.status === "minted" && d.key) {
+        if (d.status === "minted") {
           showDone(d);
           return;
         }
         if (d.status === "expired") return;
-        beginPayment(resumeId, d.amount, d.qrisId ?? null, d.expiresAt, false, (d.payMethod as "qris" | "solana" | "base") ?? "qris", d.crypto ?? null);
+        beginPayment(resumeId, d.amount, d.qrisId ?? null, d.expiresAt, false, (d.payMethod as "qris" | "solana" | "base") ?? "qris", d.crypto ?? null, d.orderCode ?? null);
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeId]);
 
+  async function applyPromo(forceCode?: string) {
+    const code = (forceCode ?? promoInput).trim().toUpperCase();
+    if (!code) return;
+    if (!selected || selected === "custom") { setPromoMsg(t("Pilih paket dulu sebelum pakai kode promo.")); return; }
+    setPromoChecking(true);
+    setPromoMsg("");
+    try {
+      const d = await api.promoValidate(code, selected);
+      if (d.valid) {
+        setPromo(d.code ?? code);
+        setPromoDiscount(d.discount_idr ?? 0);
+        setPromoMsg(t("Kode {code} dipakai: hemat {disc}.", { code: d.code ?? code, disc: rp(d.discount_idr ?? 0) }));
+      } else {
+        setPromo(null);
+        setPromoDiscount(0);
+        setPromoMsg(t(PROMO_ERR[d.error ?? ""] ?? "Kode promo nggak valid."));
+      }
+    } catch {
+      setPromoMsg(t("Gagal cek kode promo, coba lagi."));
+    } finally {
+      setPromoChecking(false);
+    }
+  }
+
+  function clearPromo() {
+    setPromo(null);
+    setPromoDiscount(0);
+    setPromoInput("");
+    setPromoMsg("");
+  }
+
   async function createOrder() {
     setOrderErr("");
     setCreating(true);
     try {
-      const d = await api.createOrder(selected ?? "", email.trim(), tsToken, payMethod);
+      const d = await api.createOrder(selected ?? "", email.trim(), tsToken, payMethod, keyMode === "extend" && extendKeyId ? extendKeyId : undefined, promo);
       setDoneKey(null);
       const ci: CryptoInfo | null = d.crypto ?? (d.address && d.usdcAmount ? { chain: d.chain ?? payMethod, address: d.address, usdcAmount: d.usdcAmount, rate: d.rate, reference: d.reference, solanaPayUrl: d.solanaPayUrl } : null);
-      beginPayment(d.id, d.amount, d.qrisId ?? null, d.expiresAt, true, payMethod, ci);
+      beginPayment(d.id, d.amount, d.qrisId ?? null, d.expiresAt, true, payMethod, ci, d.orderCode ?? null);
       setSearchParams({ order: d.id }, { replace: true });
     } catch (e) {
       const code = (e as { code?: string }).code;
@@ -246,7 +350,7 @@ export default function Beli() {
     navigator.clipboard.writeText(v).then(() => {
       done(true);
       if (copyTimer.current) clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => { setAddrCopied(false); setAmtCopied(false); }, 1500);
+      copyTimer.current = setTimeout(() => { setAddrCopied(false); setAmtCopied(false); setCodeCopied(false); }, 1500);
     });
   }
 
@@ -259,7 +363,9 @@ export default function Beli() {
     });
   }
 
-  const payDisabled = creating || !(selected && EMAIL_RE.test(email.trim())) || (!!cfg?.turnstileSiteKey && !tsToken);
+  // Checkbox persetujuan S&K — wajib dicentang sebelum bisa bayar.
+  const [agreed, setAgreed] = useState(false);
+  const payDisabled = creating || !(selected && EMAIL_RE.test(email.trim())) || (!!cfg?.turnstileSiteKey && !tsToken) || !agreed;
 
   return (
     <PublicLayout>
@@ -282,24 +388,115 @@ export default function Beli() {
               onClick={() => setSelected(p.key)}
             >
               <span className="pkg-name">{p.name}</span>
-              <span className="pkg-price">{rp(p.price)}</span>
+              <span className="pkg-price">{rp(p.price)}{toUsd(p.price, fx) && <span className="pkg-usd"> · {toUsd(p.price, fx)}</span>}</span>
               <span className="pkg-days">
                 {t("{days} hari", { days: p.days })} &middot; {t(p.blurb)}
               </span>
             </button>
           ))}
-          <a
-            className="pkg"
-            href="https://t.me/hermestele"
-            target="_blank"
-            rel="noopener"
-            style={{ textDecoration: "none" }}
+          <button
+            type="button"
+            className={"pkg" + (selected === "custom" ? " on" : "")}
+            onClick={() => setSelected("custom")}
           >
             <span className="pkg-name">Custom</span>
-            <span className="pkg-price">{t("Chat dulu")}</span>
-            <span className="pkg-days">{t("Di luar daftar? Tanya admin")}</span>
-          </a>
+            <span className="pkg-price">{t("Atur sendiri")}</span>
+            <span className="pkg-days">{t("RPM, concurrent & hari bebas")}</span>
+          </button>
         </div>
+        {selected === "custom" && (
+          <div className="custombox">
+            <b>{t("Paket custom")}</b>
+            <div className="customgrid">
+              <div>
+                <label htmlFor="customDays">{t("Masa aktif (hari)")}</label>
+                <input id="customDays" type="number" min={1} max={365} value={customDays}
+                  onChange={(e) => setCustomDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))} />
+              </div>
+              <div>
+                <label htmlFor="customRpm">{t("Request per menit")}</label>
+                <input id="customRpm" type="number" min={10} max={10000} step={10} value={customRpm}
+                  onChange={(e) => setCustomRpm(Math.max(10, Math.min(10000, Number(e.target.value) || 10)))} />
+              </div>
+              <div>
+                <label htmlFor="customConc">{t("Max concurrent")}</label>
+                <input id="customConc" type="number" min={1} max={100} value={customConc}
+                  onChange={(e) => setCustomConc(Math.max(1, Math.min(100, Number(e.target.value) || 1)))} />
+              </div>
+            </div>
+            <p className="customnote">{t("Harga dihitung admin sesuai spek. Klik tombol di bawah, pesananmu terkirim otomatis ke admin via Telegram.")}</p>
+            <a
+              className="btn primary"
+              style={{ textDecoration: "none", display: "inline-block", marginTop: 6 }}
+              href={`https://t.me/hermestele?text=${encodeURIComponent(
+                `Halo admin, saya mau pesan paket custom TipRouter:\n- Masa aktif: ${customDays} hari\n- Request per menit: ${customRpm}\n- Max concurrent: ${customConc}\n\nMohon info harga. Terima kasih.`
+              )}`}
+              target="_blank"
+              rel="noopener"
+            >
+              {t("Chat admin & pesan custom")}
+            </a>
+          </div>
+        )}
+        {selected && selected !== "custom" && (
+          <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+            {activePromos && activePromos.length > 0 && !promo && (
+              <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+                {activePromos.map((p) => (
+                  <button
+                    key={p.code}
+                    type="button"
+                    onClick={() => { setPromoInput(p.code); applyPromo(p.code); }}
+                    disabled={promoChecking}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10, textAlign: "left",
+                      padding: "10px 14px", borderRadius: 10, cursor: "pointer",
+                      border: "1px solid rgba(52,211,153,.4)", background: "rgba(52,211,153,.08)",
+                      color: "var(--txt)", font: "inherit", width: "100%",
+                    }}
+                  >
+                    <Ticket size={17} style={{ flex: "none", color: "#34d399" }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <strong style={{ fontFamily: "var(--mono, monospace)", letterSpacing: ".04em" }}>{p.code}</strong>
+                      <span className="muted" style={{ marginLeft: 8, fontSize: 13 }}>
+                        {t("diskon {d}", { d: promoDiscountLabel(p) })}
+                        {p.remaining != null ? ` · ${t("sisa {n}/{m}", { n: p.remaining, m: p.max_uses ?? 0 })}` : ""}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#34d399", flex: "none" }}>{t("Pakai")}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <label htmlFor="promoInput">{t("Kode promo (opsional)")}</label>
+            {promo ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
+                <span style={{ fontWeight: 700, fontFamily: "var(--mono, monospace)", background: "rgba(52,211,153,.12)", color: "#34d399", border: "1px solid rgba(52,211,153,.4)", borderRadius: 8, padding: "4px 10px" }}>{promo}</span>
+                <span className="muted">{t("Hemat {disc}", { disc: rp(promoDiscount) })}</span>
+                <button type="button" onClick={clearPromo} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--mut)", cursor: "pointer", textDecoration: "underline", fontSize: 13 }}>
+                  {t("Hapus")}
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                <input
+                  id="promoInput"
+                  type="text"
+                  placeholder="cth: HEMAT10"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                  style={{ textTransform: "uppercase", fontFamily: "inherit" }}
+                  maxLength={32}
+                />
+                <button type="button" className="btn" onClick={() => applyPromo()} disabled={promoChecking || !promoInput.trim()}>
+                  {promoChecking ? t("Cek…") : t("Pakai")}
+                </button>
+              </div>
+            )}
+            {promoMsg && <p className="muted" style={{ marginTop: 6 }}>{promoMsg}</p>}
+          </div>
+        )}
+        {selected !== "custom" && (
         <div style={{ display: "block", marginTop: 18, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
           <label htmlFor="emailInput">{t("2. Email kamu")}</label>
           <input
@@ -315,6 +512,39 @@ export default function Beli() {
           <p className="muted" style={{ marginTop: 6 }}>
             {emailNote}
           </p>
+          {me && myKeys && myKeys.length > 0 && (
+            <div style={{ marginTop: 18 }}>
+              <label>{t("3. Key tujuan")}</label>
+              <div className="paytabs" role="radiogroup" aria-label={t("3. Key tujuan")}>
+                <button type="button" className={"paytab" + (keyMode === "extend" ? " on" : "")} onClick={() => setKeyMode("extend")}>
+                  {t("Perpanjang key lama")}
+                </button>
+                <button type="button" className={"paytab" + (keyMode === "new" ? " on" : "")} onClick={() => setKeyMode("new")}>
+                  {t("Buat key baru")}
+                </button>
+              </div>
+              {keyMode === "extend" && (
+                <>
+                  <select
+                    value={extendKeyId}
+                    onChange={(e) => setExtendKeyId(e.target.value)}
+                    style={{ fontFamily: "inherit", marginTop: 10, width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--panel)", color: "var(--txt)", fontSize: 14 }}
+                  >
+                    {myKeys.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        {(k.prefix ?? "tip_") + "…" + (k.hint ?? "") + " \u00b7 " + (k.status === "active"
+                          ? t("aktif sampai {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" }) })
+                          : t("expired {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" }) }))}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="muted" style={{ marginTop: 6 }}>
+                    {t("Masa aktif key yang dipilih nambah sesuai paket yang dibeli. Key yang udah expired juga bisa diperpanjang \u2014 aktif lagi dihitung dari sekarang.")}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
           <div style={{ marginTop: 18 }}>
             <label>{t("Metode pembayaran")}</label>
             <div className="paytabs">
@@ -325,7 +555,22 @@ export default function Beli() {
           </div>
           <p className={"err" + (orderErr ? " show" : "")}>{t(orderErr)}</p>
           {cfg?.turnstileSiteKey ? <Turnstile ref={tsRef} siteKey={cfg.turnstileSiteKey} onToken={setTsToken} /> : null}
-          <div className="btns">
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 16, cursor: "pointer", fontSize: 14, lineHeight: 1.55 }}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              style={{ marginTop: 3, width: 17, height: 17, flex: "none", accentColor: "var(--txt)", cursor: "pointer" }}
+            />
+            <span>
+              {t("Saya sudah membaca dan menyetujui")}{" "}
+              <Link to="/syarat" target="_blank" rel="noopener" style={{ textDecoration: "underline", fontWeight: 600 }} onClick={(e) => e.stopPropagation()}>
+                {t("Syarat & Ketentuan")}
+              </Link>
+              {t(" TipRouter.")}
+            </span>
+          </label>
+          <div className="btns" style={{ marginTop: 14 }}>
             <button className="btn primary" type="button" disabled={payDisabled} onClick={createOrder}>
               {creating ? t("Bikin pembayaran\u2026") : t("Buat Pembayaran")}
             </button>
@@ -339,23 +584,17 @@ export default function Beli() {
               {t("Nominal dikonversi ke USDC pakai kurs live saat order dibuat, tanpa markup, dikunci 15 menit. Biaya jaringan ditanggung wallet kamu.")}
             </p>
           )}
-          <p className="muted" style={{ marginTop: 6 }}>
-            {t("Dengan melanjutkan pembelian, kamu menyetujui")}{" "}
-            <Link to="/syarat" style={{ textDecoration: "underline" }}>
-              {t("Syarat & Ketentuan")}
-            </Link>
-            {t(".")}
-          </p>
         </div>
+        )}
       </div>
 
       {payVisible && (
         <div className="card" ref={payCardRef}>
-          <h2>{t(payMethod === "qris" ? "3. Scan & bayar" : "3. Kirim pembayaran")}</h2>
+          <h2>{t(payMethod === "qris" ? "4. Scan & bayar" : "4. Kirim pembayaran")}</h2>
           {payMethod === "qris" ? (
             <>
               <p>{t("Pakai e-wallet / m-banking apa aja. Jangan ubah nominalnya.")}</p>
-              <p className="amt">{rp(amount)}</p>
+              <p className="amt">{rp(amount)}{toUsd(amount, fx) && <span className="pkg-usd"> · {toUsd(amount, fx)}</span>}</p>
               {qrisId && <img className="qrimg" src={"/qr/" + qrisId} alt={t("QRIS pembayaran")} />}
             </>
           ) : crypto ? (
@@ -383,6 +622,13 @@ export default function Beli() {
               </p>
             </>
           ) : null}
+          {orderCode && (
+            <div className="addrbox">
+              <span style={{ fontSize: 12.5, color: "var(--mut)" }}>{t("ID Transaksi")}</span>
+              <span className="mono" style={{ fontWeight: 700, letterSpacing: "0.04em" }}>{orderCode}</span>
+              <button className="btn" type="button" onClick={() => copyText(orderCode, setCodeCopied)}>{codeCopied ? t("Tersalin") : t("Salin")}</button>
+            </div>
+          )}
           <p className="count">
             {t("Sisa waktu")} <span>{countDown}</span>
           </p>
@@ -402,22 +648,41 @@ export default function Beli() {
 
       {doneKey !== null && (
         <div className="card" ref={doneCardRef}>
-          <h2>{t("Pembayaran diterima")}</h2>
-          <p>{t("Ini API key kamu. Simpan baik-baik, jangan dishare ke siapa pun.")}</p>
-          <div className="keybox">{doneKey}</div>
-          <div className="btns">
-            <button className="btn primary" type="button" onClick={copyKey}>
-              {copied ? t("Tersalin") : t("Salin Key")}
-            </button>
-            <Link className="btn" to="/login">
-              {t("Masuk pakai key ini")}
-            </Link>
-          </div>
+          {wasExtended ? (
+            <>
+              <h2>{t("Key diperpanjang")}</h2>
+              <p>{t("Masa aktif key-mu udah nambah sesuai paket yang dibeli. Key yang sama, masa aktif yang baru.")}</p>
+              <div className="btns">
+                <Link className="btn primary" to="/dashboard/keys">
+                  {t("Lihat key saya")}
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2>{t("Pembayaran diterima")}</h2>
+              <p>{t("Ini API key kamu. Simpan baik-baik, jangan dishare ke siapa pun.")}</p>
+              <div className="keybox">{doneKey}</div>
+              <div className="btns">
+                <button className="btn primary" type="button" onClick={copyKey}>
+                  {copied ? t("Tersalin") : t("Salin Key")}
+                </button>
+                <Link className="btn" to="/login">
+                  {t("Masuk pakai key ini")}
+                </Link>
+              </div>
+            </>
+          )}
           {keyExpires && (
             <p className="muted" style={{ marginTop: 10 }}>
               {t("Masa aktif key sampai {date}.", {
                 date: new Date(keyExpires).toLocaleString(localeTag(), { dateStyle: "long", timeStyle: "short" }),
               })}
+            </p>
+          )}
+          {orderCode && (
+            <p className="muted" style={{ marginTop: 6 }}>
+              {t("ID Transaksi")}: <span className="mono" style={{ fontWeight: 700 }}>{orderCode}</span>
             </p>
           )}
           <p className="muted">

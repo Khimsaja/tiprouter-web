@@ -1,7 +1,7 @@
 import { PublicLayout } from "../components/chrome";
 import { useLang } from "../lib/i18n";
 
-const SECTIONS: { title: string; points: string[] }[] = [
+const SECTIONS: { title: string; points: string[]; cta?: { href: string; label: string }; after?: string[] }[] = [
   {
     title: "1. Layanan yang kami sediakan",
     points: [
@@ -63,7 +63,11 @@ const SECTIONS: { title: string; points: string[] }[] = [
   {
     title: "9. Dukungan",
     points: [
-      "Bantuan tersedia lewat bot Telegram TipRouter. Kami balas secepatnya pada jam operasional, dengan usaha terbaik (best effort).",
+      "Butuh bantuan? Chat admin langsung di Telegram:",
+    ],
+    cta: { href: "https://t.me/hermestele", label: "t.me/hermestele" },
+    after: [
+      "Kami balas secepatnya pada jam operasional, dengan usaha terbaik (best effort).",
     ],
   },
   {
@@ -88,6 +92,18 @@ export default function Syarat() {
         <div className="card" key={s.title} style={{ marginTop: 14 }}>
           <h2>{t(s.title)}</h2>
           {s.points.map((p) => (
+            <p key={p} style={{ marginTop: 8 }}>
+              {t(p)}
+            </p>
+          ))}
+          {s.cta ? (
+            <p style={{ marginTop: 8 }}>
+              <a href={s.cta.href} target="_blank" rel="noreferrer">
+                {s.cta.label}
+              </a>
+            </p>
+          ) : null}
+          {(s.after ?? []).map((p) => (
             <p key={p} style={{ marginTop: 8 }}>
               {t(p)}
             </p>

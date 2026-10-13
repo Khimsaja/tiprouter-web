@@ -153,22 +153,26 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs]);
 
-  const resolveKey = useCallback(async (): Promise<string> => {
+  const resolveKey = useCallback(async (): Promise<{ key: string; autoFailed: boolean }> => {
     if (keyId) {
       setResolving(true);
       try {
         const d = await api.keySecret(keyId);
         setResolvedKey(d.secret);
-        return d.secret;
+        return { key: d.secret, autoFailed: false };
+      } catch {
+        // Secret not stored on backend (unlinked / not_stored) or fetch failed.
+        // Don't throw — let send() show a helpful message instead of dying silently.
+        return { key: "", autoFailed: true };
       } finally { setResolving(false); }
     }
     const k = manualKey.trim();
     if (k) {
       try { localStorage.setItem(LS_KEY, k); } catch { /* ignore */ }
       setResolvedKey(k);
-      return k;
+      return { key: k, autoFailed: false };
     }
-    return "";
+    return { key: "", autoFailed: false };
   }, [keyId, manualKey]);
 
   const activeKey = resolvedKey || manualKey.trim();
@@ -177,8 +181,13 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
     const text = input.trim();
     if (!text || busy) return;
     setError("");
-    const key = await resolveKey();
-    if (!key) { setError(t("Isi API key dulu sebelum ngobrol.")); return; }
+    const { key, autoFailed } = await resolveKey();
+    if (!key) {
+      setError(t(autoFailed
+        ? "Key dari akun gagal diambil otomatis. Tempel manual di kolom API key di atas."
+        : "Isi API key dulu sebelum ngobrol."));
+      return;
+    }
     if (!model) { setError(t("Pilih model dulu.")); return; }
     const history: { role: string; content: string }[] = [];
     if (system.trim()) history.push({ role: "system", content: system.trim() });

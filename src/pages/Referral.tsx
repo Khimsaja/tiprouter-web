@@ -6,10 +6,10 @@ import { api, fmtDate, type ReferralInfo, type ReferralBoard } from "../lib/api"
 import { useLang } from "../lib/i18n";
 
 const BONUS_TIERS = [
-  { pkg: "Basic", days: "3 hari", price: "Rp6.000", bonus: 1 },
-  { pkg: "Plus", days: "7 hari", price: "Rp10.000", bonus: 1 },
-  { pkg: "Essential", days: "14 hari", price: "Rp18.000", bonus: 3 },
-  { pkg: "Pro", days: "30 hari", price: "Rp30.000", bonus: 4 },
+  { pkg: "Basic", days: "3 hari", price: "Rp8.000", bonus: 1 },
+  { pkg: "Plus", days: "7 hari", price: "Rp15.000", bonus: 1 },
+  { pkg: "Essential", days: "14 hari", price: "Rp24.000", bonus: 3 },
+  { pkg: "Pro", days: "30 hari", price: "Rp40.000", bonus: 4 },
 ];
 const MILESTONES = [
   { count: 5, bonus: 3 },

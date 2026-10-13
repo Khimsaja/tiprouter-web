@@ -27,6 +27,13 @@ export const EN_C: Record<string, string> = {
   "Pilih paket, bayar pakai QRIS (e-wallet / m-banking apa aja), API key langsung keluar di layar begitu pembayaran terdeteksi. Tanpa daftar, tanpa nunggu admin.":
     "Pick a plan, pay with QRIS (any e-wallet / mobile banking), and your API key appears on screen as soon as the payment is detected. No sign-up, no waiting for admin.",
   "1. Pilih paket": "1. Pick a plan",
+  "Atur sendiri": "Configure it yourself",
+  "RPM, concurrent & hari bebas": "Free RPM, concurrency & days",
+  "Paket custom": "Custom plan",
+  "Masa aktif (hari)": "Duration (days)",
+  "Max concurrent": "Max concurrent",
+  "Harga dihitung admin sesuai spek. Klik tombol di bawah, pesananmu terkirim otomatis ke admin via Telegram.": "The admin will price it based on your specs. Tap the button below — your order is sent to the admin automatically via Telegram.",
+  "Chat admin & pesan custom": "Chat admin & order custom",
   "{days} hari": "{days} days",
   "Chat dulu": "Chat first",
   "Di luar daftar? Tanya admin": "Not on the list? Ask admin",
@@ -117,6 +124,9 @@ export const EN_C: Record<string, string> = {
   "key pribadi": "personal key",
   ": unlimited token, semua model paket berbayar, mati sendiri pas durasinya habis.":
     ": unlimited tokens, all paid-plan models, and it stops on its own when the duration ends.",
+  "Batas pemakaian key gacha:": "Gacha key usage limits:",
+  "koneksi bersamaan": "concurrent connection",
+  " — demi kenyamanan seluruh pengguna.": " — to keep the service smooth for everyone.",
   "Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.":
     "Spin results are final — the duration you get can't be exchanged or re-rolled.",
   "Habis masa gacha dan mau lanjut tanpa putus?": "Gacha time over and want to keep going without a break?",

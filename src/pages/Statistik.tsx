@@ -1,7 +1,8 @@
-import { Activity, ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ListOrdered } from "lucide-react";
+import { useState } from "react";
+import { Activity, ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ClipboardCopy, ListOrdered } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
-import { fmtNum } from "../lib/api";
-import { localeTag, tr, useLang } from "../lib/i18n";
+import { fmtNum, type PublicStats } from "../lib/api";
+import { getLang, localeTag, tr, useLang } from "../lib/i18n";
 import { usePublicStats } from "../lib/usePublicStats";
 
 // Same compact style as the landing stats ("jt"/"rb") so both pages read identically.
@@ -15,6 +16,77 @@ const fmtCompact = (n: number) =>
 export default function Statistik() {
   const { t } = useLang();
   const { stats, error } = usePublicStats();
+  const [copied, setCopied] = useState(false);
+
+  const sharePct = (hits: number) =>
+    stats && stats.requests > 0
+      ? (hits / stats.requests * 100).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%"
+      : "–";
+
+  // Laporan monospace siap tempel ke Telegram — datanya live dari API,
+  // jadi tiap 24 jam angkanya otomatis ikut berubah.
+  const buildReport = (): string => {
+    if (!stats) return "";
+    const id = getLang() === "id";
+    const fi = (n: number) => n.toLocaleString(localeTag());
+    const pct = (hits: number) =>
+      stats.requests > 0
+        ? (hits / stats.requests * 100).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%"
+        : "0%";
+    const date = new Date().toLocaleDateString(localeTag(), { day: "numeric", month: "long", year: "numeric" });
+    const totalTok = stats.input_tokens + stats.output_tokens;
+    const L: string[] = [];
+    L.push(id ? "🏆 TOP 10 MODEL — TipRouter" : "🏆 TOP 10 MODELS — TipRouter");
+    L.push(id ? `📆 ${date} · 24 jam terakhir` : `📆 ${date} · last 24 hours`);
+    L.push("🌐 tiprouter.my.id");
+    L.push("");
+    L.push(`⚡ ${fi(stats.requests)} requests · 🪙 ${fi(totalTok)} tokens`);
+    L.push("");
+    const hTok = id ? "Token" : "Tokens";
+    L.push(`${"#".padStart(2)}  ${"Model".padEnd(22)} ${"Request".padStart(8)} ${hTok.padStart(15)} ${"Share".padStart(6)}`);
+    L.push("━".repeat(58));
+    stats.top_models.forEach((m, i) => {
+      const name = m.model.length > 22 ? m.model.slice(0, 21) + "…" : m.model;
+      L.push(
+        `${String(i + 1).padStart(2)}  ${name.padEnd(22)} ${fi(m.hits).padStart(8)} ${fi(m.tokens).padStart(15)} ${pct(m.hits).padStart(6)}`
+      );
+    });
+    L.push("");
+    if (id) {
+      L.push("✨ 1 API key untuk semua model · OpenAI & Anthropic compatible");
+      L.push("🎟️ Coba Trial Rp3.000 → tiprouter.my.id");
+    } else {
+      L.push("✨ 1 API key for all models · OpenAI & Anthropic compatible");
+      L.push("🎟️ Try the IDR 3,000 Trial → tiprouter.my.id");
+    }
+    return L.join("\n");
+  };
+
+  const copyReport = async () => {
+    if (!stats || copied) return;
+    const text = buildReport();
+    const done = () => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    };
+    try {
+      await navigator.clipboard.writeText(text);
+      done();
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        if (document.execCommand("copy")) done();
+      } catch {
+        /* noop */
+      }
+      document.body.removeChild(ta);
+    }
+  };
 
   const cards = [
     {
@@ -47,7 +119,7 @@ export default function Statistik() {
 
   return (
     <PublicLayout>
-      <div className="wrap">
+      <div>
         <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", margin: "18px 0 6px" }}>
           {t("Statistik jaringan")}
         </h1>
@@ -61,7 +133,7 @@ export default function Statistik() {
           </div>
         )}
 
-        <div className="stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+        <div className="stats" style={{ gap: 10, marginBottom: 14 }}>
           {cards.map((c) => (
             <div className="stat" key={c.label}>
               <div className="lab" style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -75,28 +147,41 @@ export default function Statistik() {
         </div>
 
         <div className="card">
-          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <ListOrdered size={16} />
-            {t("Model terlaris")}
-          </h2>
-          <p style={{ marginTop: 0 }}>{t("10 model dengan request terbanyak dalam 24 jam terakhir.")}</p>
-          {(stats?.top_models ?? []).map((m) => {
-            const rate = m.hits > 0 ? (m.ok / m.hits) * 100 : 0;
-            return (
-              <div className="row" key={m.model}>
-                <div>
-                  <p className="who" style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{m.model}</p>
-                  <p className="meta" style={{ margin: "2px 0 0", fontSize: 12, color: "var(--mut)" }}>
-                    {rate.toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% {t("sukses")}
-                  </p>
-                </div>
-                <div className="right" style={{ textAlign: "right" }}>
-                  <div style={{ fontWeight: 800, fontSize: 15 }}>{fmtNum(m.hits)}</div>
-                  <div style={{ fontSize: 12, color: "var(--mut)" }}>{fmtNum(m.ok)} OK</div>
-                </div>
-              </div>
-            );
-          })}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <h2 style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+              <ListOrdered size={16} />
+              {t("Model terlaris")}
+            </h2>
+            <button className="btn sm" onClick={copyReport} disabled={!stats} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <ClipboardCopy size={14} />
+              {copied ? t("Tersalin") : t("Salin format Telegram")}
+            </button>
+          </div>
+          <p style={{ marginBottom: 0 }}>{t("10 model dengan request terbanyak dalam 24 jam terakhir.")}</p>
+          <div className="ptable-wrap">
+            <table className="ptable">
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}>#</th>
+                  <th>Model</th>
+                  <th style={{ textAlign: "right" }}>Request</th>
+                  <th style={{ textAlign: "right" }}>{t("Token")}</th>
+                  <th style={{ textAlign: "right" }}>{t("Share")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats?.top_models ?? []).map((m, i) => (
+                  <tr key={m.model}>
+                    <td style={{ color: "var(--mut)" }}>{i + 1}</td>
+                    <td><code>{m.model}</code></td>
+                    <td style={{ textAlign: "right", fontWeight: 700 }}>{fmtNum(m.hits)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtNum(m.tokens)}</td>
+                    <td style={{ textAlign: "right", color: "var(--mut)" }}>{sharePct(m.hits)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {!stats && !error && <p style={{ color: "var(--mut)", fontSize: 14 }}>{t("Memuat…")}</p>}
         </div>
       </div>
