@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Ticket } from "lucide-react";
+import { Ticket, Github } from "lucide-react";
+
+function GoogleIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" style={{ flex: "none" }}>
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 30.223 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+      <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+    </svg>
+  );
+}
 import { PublicLayout } from "../components/chrome";
 import Turnstile, { type TurnstileHandle } from "../components/Turnstile";
 import { api, rp, PACKAGES, promoDiscountLabel, usdIdr, toUsd, type Config, type OrderStatus, type CryptoInfo, type KeyItem } from "../lib/api";
@@ -54,6 +65,7 @@ const ORDER_ERR: Record<string, string> = {
   promo_expired: "Kode promo ini udah kedaluwarsa.",
   promo_exhausted: "Kuota kode promo ini udah habis.",
   promo_already_redeemed: "Kode promo ini udah pernah dipakai di akun / jaringan ini.",
+  login_required: "Beli sekarang wajib login. Masuk dulu pakai Google/GitHub ya.",
 };
 const PROMO_ERR: Record<string, string> = {
   promo_invalid: "Format kode promo nggak valid.",
@@ -69,7 +81,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const mmss = (sec: number) => String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
 
 export default function Beli() {
-  const { me } = useSession();
+  const { me, loading: sessionLoading } = useSession();
   const { t } = useLang();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -374,7 +386,7 @@ export default function Beli() {
         {t("Beli paket")} <em>TipRouter.</em>
       </h1>
       <p className="sub">
-        {t("Pilih paket, bayar pakai QRIS atau USDC (Solana / Base), API key langsung keluar di layar begitu pembayaran terdeteksi. Tanpa daftar, tanpa nunggu admin.")}
+        {t("Login pakai Google/GitHub, pilih paket, bayar pakai QRIS atau USDC (Solana / Base), API key langsung keluar di layar begitu pembayaran terdeteksi.")}
       </p>
 
       <div className="card">
@@ -438,6 +450,25 @@ export default function Beli() {
             </a>
           </div>
         )}
+        {!sessionLoading && !me ? (
+          <div style={{ marginTop: 18, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+            <h2>{t("Login dulu buat beli")}</h2>
+            <p className="muted" style={{ marginTop: 6 }}>
+              {t("Beli sekarang wajib login. Masuk pakai Google atau GitHub, abis itu kamu balik lagi ke sini buat lanjut bayar. Key otomatis nempel ke akunmu.")}
+            </p>
+            <div className="btns">
+              <a className="btn primary" href="/auth/google/start?next=/beli" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <GoogleIcon />
+                {t("Masuk dengan Google")}
+              </a>
+              <a className="btn" href="/auth/github/start?next=/beli" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <Github size={17} />
+                {t("Masuk dengan GitHub")}
+              </a>
+            </div>
+          </div>
+        ) : (
+          <>
         {selected && selected !== "custom" && (
           <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 14 }}>
             {activePromos && activePromos.length > 0 && !promo && (
@@ -512,7 +543,7 @@ export default function Beli() {
           <p className="muted" style={{ marginTop: 6 }}>
             {emailNote}
           </p>
-          {me && myKeys && myKeys.length > 0 && (
+          {me && myKeys && myKeys.filter((k) => k.source?.kind !== "gacha").length > 0 && (
             <div style={{ marginTop: 18 }}>
               <label>{t("3. Key tujuan")}</label>
               <div className="paytabs" role="radiogroup" aria-label={t("3. Key tujuan")}>
@@ -530,7 +561,7 @@ export default function Beli() {
                     onChange={(e) => setExtendKeyId(e.target.value)}
                     style={{ fontFamily: "inherit", marginTop: 10, width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--panel)", color: "var(--txt)", fontSize: 14 }}
                   >
-                    {myKeys.map((k) => (
+                    {myKeys.filter((k) => k.source?.kind !== "gacha").map((k) => (
                       <option key={k.id} value={k.id}>
                         {(k.prefix ?? "tip_") + "…" + (k.hint ?? "") + " \u00b7 " + (k.status === "active"
                           ? t("aktif sampai {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" }) })
@@ -585,6 +616,8 @@ export default function Beli() {
             </p>
           )}
         </div>
+        )}
+          </>
         )}
       </div>
 

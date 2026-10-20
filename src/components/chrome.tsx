@@ -49,6 +49,7 @@ export function SiteHeader() {
           <a href="/#harga" onClick={anchor("#harga")}>{t("Harga")}</a>
           <NavLink to="/bansos" onClick={() => setOpen(false)}>Bansos</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
+          <NavLink to="/status" onClick={() => setOpen(false)}>{t("Status")}</NavLink>
           <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
           <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
@@ -87,6 +88,9 @@ export function SiteFooter() {
         </Link>
         <Link to="/statistik" style={{ textDecoration: "underline" }}>
           {t("Statistik")}
+        </Link>
+        <Link to="/status" style={{ textDecoration: "underline" }}>
+          {t("Status")}
         </Link>
         <a
           href="https://t.me/hermestele"

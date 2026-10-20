@@ -174,6 +174,12 @@ export interface PublicModelStat {
   tokens: number;
 }
 
+export interface PublicModelHealth {
+  model: string;
+  hits: number;
+  ok: number;
+}
+
 export interface PublicStats {
   window: "24h";
   requests: number;
@@ -182,6 +188,8 @@ export interface PublicStats {
   input_tokens: number;
   output_tokens: number;
   top_models: PublicModelStat[];
+  /** Per-model health over the last 60 minutes (may be absent on old backends). */
+  model_health_1h?: PublicModelHealth[];
   generated_at: string;
 }
 

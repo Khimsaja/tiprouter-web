@@ -22,6 +22,7 @@ import Referral from "./pages/Referral";
 import Notifikasi from "./pages/Notifikasi";
 import Riwayat from "./pages/Riwayat";
 import Statistik from "./pages/Statistik";
+import Status from "./pages/Status";
 import Playground from "./pages/Playground";
 import "./index.css";
 
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
   { path: "/syarat", element: <Syarat /> },
   { path: "/proxy", element: <ProxyPage /> },
   { path: "/statistik", element: <Statistik /> },
+  { path: "/status", element: <Status /> },
   { path: "/playground", element: <Playground /> },
   { path: "/akun", element: <Navigate to="/profile" replace /> },
   {

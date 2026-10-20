@@ -5,6 +5,7 @@ import { PublicLayout } from "../components/chrome";
 import { localeTag, tr, useLang } from "../lib/i18n";
 import { usePublicStats } from "../lib/usePublicStats";
 import { useActivePromos } from "../lib/useActivePromos";
+import BansosDeepseek from "../components/BansosDeepseek";
 import { promoDiscountLabel, usdIdr, toUsd } from "../lib/api";
 
 const CSS = `
@@ -530,6 +531,8 @@ export default function Landing() {
             <p className="s">{t("per key, biar pool enak dipakai semua")}</p>
           </div>
         </div>
+
+        <BansosDeepseek />
 
         <section className="ld-section" id="model">
           <div className="ld-sec-head">
