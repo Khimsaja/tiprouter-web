@@ -9,13 +9,13 @@ type Health = "fast" | "slow" | "down" | "nodata";
 const healthOf = (m: PublicModelHealth): Health => {
   if (m.hits <= 0) return "nodata";
   const r = m.ok / m.hits;
-  if (r >= 0.95) return "fast";
+  if (r >= 0.9) return "fast";
   if (r >= 0.5) return "slow";
   return "down";
 };
 
-// Urutan tampil: yang paling sehat di atas.
-const rank: Record<Health, number> = { fast: 0, slow: 1, down: 2, nodata: 3 };
+// Urutan tampil: rasio sukses terbesar di atas; yang belum ada data paling bawah.
+const ratio = (m: PublicModelHealth) => (m.hits > 0 ? m.ok / m.hits : -1);
 
 export default function Status() {
   const { t } = useLang();
@@ -30,7 +30,7 @@ export default function Status() {
 
   const rows = (stats?.model_health_1h ?? [])
     .slice()
-    .sort((a, b) => rank[healthOf(a)] - rank[healthOf(b)] || b.hits - a.hits);
+    .sort((a, b) => ratio(b) - ratio(a) || b.hits - a.hits);
 
   const down = rows.filter((m) => healthOf(m) === "down").length;
   const slow = rows.filter((m) => healthOf(m) === "slow").length;
@@ -137,7 +137,7 @@ export default function Status() {
             )}
           </div>
           <p style={{ marginTop: 16, marginBottom: 0, fontSize: 13 }}>
-            {t("Hijau ≥95% berhasil · kuning 50–95% · merah <50% dalam 1 jam terakhir. Request yang kena rate-limit tidak dihitung sebagai gagal.")}
+            {t("Hijau ≥90% berhasil · kuning 50–90% · merah <50% dalam 1 jam terakhir. Request yang kena rate-limit atau dibatalkan sendiri oleh client tidak dihitung sebagai gagal.")}
           </p>
         </div>
       </div>

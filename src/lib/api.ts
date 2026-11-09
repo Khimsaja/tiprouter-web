@@ -25,13 +25,25 @@ export type KeyItem = {
 export type Config = { google: boolean; github: boolean; telegramBot: string | null; apikey: boolean; turnstileSiteKey?: string | null; crypto?: { solana: boolean; base: boolean } };
 
 export type CryptoInfo = { chain: string; address: string; usdcAmount: number; rate?: number; reference?: string; solanaPayUrl?: string };
-export type OrderCreated = { id: string; orderCode?: string; amount: number; qrisId: string; expiresAt: string; packageName: string; days: number; payMethod?: string; promoCode?: string | null; discountIdr?: number; finalPrice?: number; crypto?: CryptoInfo; address?: string; usdcAmount?: number; rate?: number; reference?: string; solanaPayUrl?: string; chain?: string };
+export type OrderCreated = { id: string; orderCode?: string; amount: number; qrisId: string; qrisPayload?: string; expiresAt: string; packageName: string; days: number; payMethod?: string; promoCode?: string | null; discountIdr?: number; finalPrice?: number; crypto?: CryptoInfo; address?: string; usdcAmount?: number; rate?: number; reference?: string; solanaPayUrl?: string; chain?: string };
 export type PromoCheck = { valid: boolean; code?: string; kind?: string; value?: number; discount_idr?: number; final_price?: number; error?: string };
 export type ActivePromo = {
   code: string; kind: string; value: number;
   max_uses: number | null; used_count: number; remaining: number | null;
   expires_at: string | null; note: string | null;
+  allowed_packages: string[] | null;
 };
+export const PACKAGE_NAMES: Record<string, string> = {
+  trial: "Trial", basic: "Basic", plus: "Plus", essential: "Essential", pro: "Pro",
+};
+export const ALL_PACKAGE_KEYS = ["trial", "basic", "plus", "essential", "pro"];
+/** Scope label for a promo strip entry: null = all plans (generic text). */
+export function promoScopeNames(p: Pick<ActivePromo, "allowed_packages">): string | null {
+  const allowed = p.allowed_packages;
+  if (!allowed || allowed.length === 0) return null;
+  if (allowed.length >= ALL_PACKAGE_KEYS.length && ALL_PACKAGE_KEYS.every((k) => allowed.includes(k))) return null;
+  return allowed.map((k) => PACKAGE_NAMES[k] ?? k).join(", ");
+}
 export function promoDiscountLabel(p: Pick<ActivePromo, "kind" | "value">): string {
   return p.kind === "percent" ? `${p.value}%` : `Rp${p.value.toLocaleString("id-ID")}`;
 }
@@ -97,7 +109,7 @@ export type ProxyResult = {
 };
 
 export type OrderStatus = {  status: "pending" | "paid" | "minted" | "expired" | "cancelled" | "paid_late";
-  amount: number; packageKey: string; qrisId?: string; expiresAt: string; key?: string; keyExpires?: string; extended?: boolean;
+  amount: number; packageKey: string; qrisId?: string; qrisPayload?: string; expiresAt: string; key?: string; keyExpires?: string; extended?: boolean;
   payMethod: string; crypto?: CryptoInfo; orderCode?: string;
 };
 
@@ -107,10 +119,10 @@ export type GachaState =
 
 export const PACKAGES = [
   { key: "trial", name: "Trial", days: 1, price: 3000, blurb: "Buat nyobain dulu" },
-  { key: "basic", name: "Basic", days: 3, price: 8000, blurb: "Paket santai" },
-  { key: "plus", name: "Plus", days: 7, price: 15000, blurb: "Seminggu penuh" },
-  { key: "essential", name: "Essential", days: 14, price: 24000, blurb: "Dua minggu" },
-  { key: "pro", name: "Pro", days: 30, price: 40000, blurb: "Paling hemat per hari" },
+  { key: "basic", name: "Basic", days: 3, price: 10000, blurb: "Paket santai" },
+  { key: "plus", name: "Plus", days: 7, price: 19000, blurb: "Seminggu penuh" },
+  { key: "essential", name: "Essential", days: 14, price: 30000, blurb: "Dua minggu" },
+  { key: "pro", name: "Pro", days: 30, price: 50000, blurb: "Paling hemat per hari" },
 ] as const;
 
 async function j<T>(res: Response): Promise<T> {

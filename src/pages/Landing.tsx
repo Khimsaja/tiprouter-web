@@ -6,7 +6,7 @@ import { localeTag, tr, useLang } from "../lib/i18n";
 import { usePublicStats } from "../lib/usePublicStats";
 import { useActivePromos } from "../lib/useActivePromos";
 import BansosDeepseek from "../components/BansosDeepseek";
-import { promoDiscountLabel, usdIdr, toUsd } from "../lib/api";
+import { promoDiscountLabel, promoScopeNames, usdIdr, toUsd } from "../lib/api";
 
 const CSS = `
 .ld-refbar{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px;font-size:13.5px;color:var(--mut);margin-bottom:14px;line-height:1.5}
@@ -76,17 +76,10 @@ const CSS = `
 .ld-sec{font-size:clamp(27px,3.4vw,36px);letter-spacing:-.025em;line-height:1.12;font-weight:800;margin-top:10px}
 .ld-sec em{font-style:normal;color:var(--faint)}
 .ld-lead{color:var(--mut);font-size:15.5px;line-height:1.6;max-width:560px;margin-top:10px}
-.ld-model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ld-model-card{margin-top:0}
-.ld-model-card .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ld-model-card .fam{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.ld-mchip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--green);border:1px solid var(--green);padding:3px 9px;border-radius:999px;white-space:nowrap}
-.ld-mchip i{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.ld-model-card h3{font-family:var(--font-mono);font-size:16px;font-weight:700;margin-top:12px;letter-spacing:-.01em;word-break:break-all}
-.ld-model-card p{font-size:13.5px;color:var(--mut);line-height:1.55;margin-top:7px}
-.ld-model-card.cta-tile{background:var(--hover)}
-.ld-model-card.cta-tile h3{font-family:var(--font-sans)}
-.ld-model-card.cta-tile a{font-weight:600;text-decoration:underline}
+.ld-model-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ld-model-chip{font-family:var(--font-mono);font-size:13px;font-weight:600;padding:8px 13px;border:1px solid var(--border);border-radius:999px;white-space:nowrap}
+.ld-model-more{margin-top:16px;font-size:13.5px;color:var(--mut);line-height:1.55}
+.ld-model-more a{font-weight:600;text-decoration:underline;color:var(--txt)}
 .ld-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
 .ld-step{margin-top:0}
 .ld-step .verb{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;letter-spacing:-.01em}
@@ -152,14 +145,14 @@ const CSS = `
 .reveal.in{opacity:1;transform:none}
 @media (max-width:960px){
   .ld-hero-grid{grid-template-columns:1fr;gap:28px}
-  .ld-model-grid,.ld-price-grid,.ld-steps{grid-template-columns:repeat(2,1fr)}
+  .ld-price-grid,.ld-steps{grid-template-columns:repeat(2,1fr)}
   .ld-avail{grid-template-columns:1fr 1fr}
 }
 @media (max-width:640px){
   .ld-metrics{grid-template-columns:repeat(2,1fr)}
   .ld-topmodels .th,.ld-topmodels .tr{grid-template-columns:1fr 44px 44px 62px;font-size:11.5px}
   .ld-topmodels.cols3 .th,.ld-topmodels.cols3 .tr{grid-template-columns:1fr 56px 56px}
-  .ld-model-grid,.ld-price-grid,.ld-steps{grid-template-columns:1fr}
+  .ld-price-grid,.ld-steps{grid-template-columns:1fr}
   .ld-avail{grid-template-columns:1fr}
   .ld-config-row{grid-template-columns:1fr;gap:8px}
   .ld-compare{padding:4px 18px}
@@ -174,26 +167,18 @@ const CSS = `
 }
 `;
 
-// fam/note marketing per model; the ID list itself is fetched live from the
-// 'tiprouter new' template via /api/template-models (FALLBACK_MODELS if offline).
-const MODEL_META: Record<string, { fam: string; note: string }> = {
-  "deepseek-v-4.1-flash": { fam: "DeepSeek", note: "Generasi 4.1, reasoning lebih rapi." },
-  "deepseek-v4.1-flash": { fam: "DeepSeek", note: "Varian 4.1 yang cepat dan stabil buat pemakaian harian." },
-  "fledge-alpha": { fam: "Fledge", note: "Model eksperimental, serba bisa." },
-  "gemini-3.8-flash": { fam: "Gemini", note: "Generasi Gemini terbaru, cepat dan serba bisa." },
-  "glm-5-3-flash": { fam: "GLM", note: "Kuat di bahasa dan tugas umum." },
-  "gpt-6-luna": { fam: "GPT", note: "Flagship generasi terbaru, paling pintar." },
-  "hy4-preview": { fam: "HY", note: "Preview generasi terbaru." },
-  "jev-1.13": { fam: "JEV", note: "Ringan untuk integrasi cepat." },
-  "ling-3.1-flash": { fam: "Ling", note: "Ringan dan responsif buat chat harian." },
-  "longcat-2.5-preview": { fam: "LongCat", note: "Konteks panjang untuk dokumen besar." },
-  "mimo-v2.5": { fam: "MiMo", note: "Seimbang untuk chat dan penalaran." },
-  "mimo-v2.6.flash": { fam: "MiMo", note: "Varian flash, latensi rendah." },
-  "muse-spark-1.3": { fam: "Meta", note: "Model cepat untuk tugas kreatif." },
-  "qwen-3.8-27b": { fam: "Qwen", note: "Ringan, respons kilat, enak buat otomasi." },
-  "space-bunny": { fam: "Space", note: "Karakter santai untuk chat kasual." },
-};
-const FALLBACK_MODELS = Object.keys(MODEL_META);
+// Fallback kalau /api/template-models tidak bisa dimuat; daftar live-nya
+// diambil dari template 'tiprouter new' (diperbarui 2026-11-07).
+const FALLBACK_MODELS = [
+  "mimo-v2.5", "glm-5-3-flash", "hy4-preview", "mimo-v2.6.flash",
+  "muse-spark-1.3", "gemini-3.8-flash", "qwen-3.8-27b", "solar-mini4",
+  "glm-5.3", "nemotron-3.5-super", "hy3", "beam",
+  "longcat-2.5-preview", "qwen3.8-omni-flash", "atria-dawn", "kimi-k2.6",
+  "deepseek-v4.1-flash-1017", "gpt-6-luna", "deepseek-v-4.1-flash-1017",
+  "deepseek-v4-flash-0731", "mercury-3", "step-3.7-flash", "step-5-preview",
+  "minimax-m3.1-flash", "laguna-s-2.1", "qwen3.8-flash",
+  "dots-3-note-preview", "qwen3.8-flash-uncen", "S5",
+];
 
 const fmtID = (n: number) => n.toLocaleString(localeTag());
 const fmtCompact = (n: number) =>
@@ -313,33 +298,33 @@ const PRICES = [
   },
   {
     name: "Basic · 3 hari",
-    amount: "Rp8.000",
-    idr: 8000,
-    per: "Rp2.667 per hari · sekali bayar",
+    amount: "Rp10.000",
+    idr: 10000,
+    per: "Rp3.333 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 3 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Plus · 7 hari",
-    amount: "Rp15.000",
-    idr: 15000,
-    per: "Rp2.143 per hari · sekali bayar",
+    amount: "Rp19.000",
+    idr: 19000,
+    per: "Rp2.714 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 7 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Essential · 14 hari",
-    amount: "Rp24.000",
-    idr: 24000,
-    per: "Rp1.714 per hari · sekali bayar",
+    amount: "Rp30.000",
+    idr: 30000,
+    per: "Rp2.143 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 14 hari", "QRIS otomatis"],
     pop: false,
   },
   {
     name: "Pro · 30 hari",
-    amount: "Rp40.000",
-    idr: 40000,
-    per: "Rp1.333 per hari · sekali bayar",
+    amount: "Rp50.000",
+    idr: 50000,
+    per: "Rp1.667 per hari · sekali bayar",
     features: ["Semua model, satu key", "Unlimited 30 hari", "QRIS otomatis", "Perpanjang key yang sama"],
     pop: true,
   },
@@ -546,37 +531,19 @@ export default function Landing() {
               </p>
             </div>
           </div>
-          <div className="ld-model-grid">
-            {modelIds.map((id) => {
-              const meta = MODEL_META[id] ?? { fam: id.split("-")[0].toUpperCase(), note: "" };
-              return (
-                <article className="card ld-model-card reveal" key={id}>
-                  <div className="top">
-                    <span className="fam">{meta.fam}</span>
-                    <span className="ld-mchip">
-                      <i />
-                      Available
-                    </span>
-                  </div>
-                  <h3>{id}</h3>
-                  {meta.note ? <p>{t(meta.note)}</p> : null}
-                </article>
-              );
-            })}
-            <article className="card ld-model-card cta-tile reveal">
-              <div className="top">
-                <span className="fam">Request</span>
-              </div>
-              <h3>{t("Model lain menyusul.")}</h3>
-              <p>
-                {t("Request model favorit kamu lewat")}{" "}
-                <a href="https://t.me/hermestele" target="_blank" rel="noopener">
-                  Telegram
-                </a>
-                {t(", kami usahakan masuk daftar.")}
-              </p>
-            </article>
+          <div className="ld-model-chips reveal">
+            {modelIds.map((id) => (
+              <span className="ld-model-chip" key={id}>{id}</span>
+            ))}
           </div>
+          <p className="ld-model-more reveal">
+            {t("Model lain menyusul.")}{" "}
+            {t("Request model favorit kamu lewat")}{" "}
+            <a href="https://t.me/hermestele" target="_blank" rel="noopener">
+              Telegram
+            </a>
+            {t(", kami usahakan masuk daftar.")}
+          </p>
         </section>
 
         <section className="ld-section" id="cara-pakai">
@@ -629,7 +596,7 @@ export default function Landing() {
               <p className="plain">{t("Kompatibel OpenAI. Aplikasi yang sudah jalan tinggal ganti base URL dan key.")}</p>
             </div>
             <pre className="ld-sample">
-              <span className="c"># Format OpenAI. Ganti base URL dan key saja.</span>
+              <span className="c">{t("# Format OpenAI. Ganti base URL dan key saja.")}</span>
               {"\n"}
               {"curl https://tiprouter.my.id/v1/chat/completions \\\n  -H "}
               <span className="s">"Authorization: Bearer KEY_KAMU"</span>
@@ -659,7 +626,12 @@ export default function Landing() {
                   <div className="ld-promo-tx">
                     <p className="ld-promo-code">
                       {p.code}
-                      <span>{t("Diskon {d} semua paket", { d: promoDiscountLabel(p) })}</span>
+                      <span>{(() => {
+                        const scope = promoScopeNames(p);
+                        return scope
+                          ? t("Diskon {d} khusus {p}", { d: promoDiscountLabel(p), p: scope })
+                          : t("Diskon {d} semua paket", { d: promoDiscountLabel(p) });
+                      })()}</span>
                     </p>
                     <p className="ld-promo-left">
                       {p.remaining != null

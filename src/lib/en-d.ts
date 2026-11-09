@@ -412,6 +412,8 @@ Object.assign(EN_D, {
   "Login dulu buat bisa perpanjang key lama.": "Log in first to extend an existing key.",
   "Key yang dipilih bukan milik akunmu.": "The selected key doesn't belong to your account.",
   "Key yang dipilih udah nggak valid. Pilih key lain atau bikin key baru.": "The selected key is no longer valid. Pick another key or create a new one.",
+  "Key gacha nggak bisa diperpanjang — kalau udah expired ya hangus. Beli key baru aja.": "Gacha keys can't be extended — once expired they're forfeit. Buy a new key instead.",
+  "Kode promo ini cuma berlaku buat paket tertentu.": "This promo code only applies to certain packages.",
   "Salin format Telegram": "Copy Telegram format",
   "Menyalin…": "Copying…",
   "Token": "Tokens",
@@ -498,6 +500,7 @@ Object.assign(EN_D, {
     "This is your only way to sign in. Connect another account first before disconnecting it.",
   "Gagal memutuskan akun. Coba lagi.": "Failed to disconnect the account. Try again.",
   "Diskon {d} semua paket": "Get {d} off all plans",
+  "Diskon {d} khusus {p}": "Get {d} off {p}",
   "Sisa {n} dari {m} pemakaian": "{n} of {m} uses left",
   "Kuota tanpa batas": "Unlimited uses",
   "Pakai kode": "Use code",
@@ -568,4 +571,5 @@ Object.assign(EN_D, {
   "{n} model upstream lambat": "{n} models on slow upstream",
   "Semua model upstream cepat": "All models on fast upstream",
   "Hijau ≥95% berhasil · kuning 50–95% · merah <50% dalam 1 jam terakhir. Request yang kena rate-limit tidak dihitung sebagai gagal.": "Green ≥95% success · yellow 50–95% · red <50% over the last hour. Rate-limited requests are not counted as failures.",
+  "Hijau ≥90% berhasil · kuning 50–90% · merah <50% dalam 1 jam terakhir. Request yang kena rate-limit tidak dihitung sebagai gagal.": "Green ≥90% success · yellow 50–90% · red <50% over the last hour. Rate-limited requests are not counted as failures.",
 });

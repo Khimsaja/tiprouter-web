@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, ClipboardCopy, Cpu, Gift, Globe, KeyRound, Lock } from "lucide-react";
-import { localeTag, useLang } from "../lib/i18n";
+import { localeTag, tr, useLang } from "../lib/i18n";
 import { useSession } from "../lib/session";
 
 interface BansosDeepseekData {
@@ -20,7 +20,7 @@ const fmtTok = (n: number) =>
   n >= 1e9
     ? (n / 1e9).toLocaleString(localeTag(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " B"
     : n >= 1e6
-      ? (n / 1e6).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " jt"
+      ? (n / 1e6).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" jt")
       : n.toLocaleString(localeTag());
 
 async function copyText(text: string): Promise<boolean> {
@@ -45,6 +45,7 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 function Field({ icon, label, value, secret }: { icon: React.ReactNode; label: string; value: string; secret?: boolean }) {
+  const { t } = useLang();
   const [copied, setCopied] = useState(false);
   const onCopy = async () => {
     if (await copyText(value)) {
@@ -88,7 +89,7 @@ function Field({ icon, label, value, secret }: { icon: React.ReactNode; label: s
           aria-label={label}
         >
           {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}
-          {copied ? "OK" : "Salin"}
+          {copied ? "OK" : t("Salin")}
         </button>
       </div>
     </div>

@@ -94,8 +94,8 @@ export const EN_C: Record<string, string> = {
   "Sekali seumur akun. Hasilnya ditentukan server, bukan keberuntungan browser.":
     "Once per account, forever. The result is decided by the server, not your browser's luck.",
   // Bansos — result card
-  "JACKPOT! Key gacha kamu ({hours} jam)": "JACKPOT! Your gacha key ({hours} hours)",
-  "Key gacha kamu ({hours} jam)": "Your gacha key ({hours} hours)",
+  "JACKPOT! Key gacha kamu ({hours} jam)": "JACKPOT! Your gacha key ({hours}h)",
+  "Key gacha kamu ({hours} jam)": "Your gacha key ({hours}h)",
   Habis: "Expired",
   Aktif: "Active",
   "Lihat di API Keys": "View in API Keys",

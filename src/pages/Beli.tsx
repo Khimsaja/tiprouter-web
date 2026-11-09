@@ -59,6 +59,8 @@ const ORDER_ERR: Record<string, string> = {
   extend_login_required: "Login dulu buat bisa perpanjang key lama.",
   extend_not_yours: "Key yang dipilih bukan milik akunmu.",
   extend_key_invalid: "Key yang dipilih udah nggak valid. Pilih key lain atau bikin key baru.",
+  extend_gacha_not_allowed: "Key gacha nggak bisa diperpanjang — kalau udah expired ya hangus. Beli key baru aja.",
+  promo_not_for_package: "Kode promo ini cuma berlaku buat paket tertentu.",
   promo_invalid: "Format kode promo nggak valid.",
   promo_not_found: "Kode promo nggak ketemu. Cek lagi tulisannya.",
   promo_inactive: "Kode promo ini udah dinonaktifkan.",
@@ -73,7 +75,8 @@ const PROMO_ERR: Record<string, string> = {
   promo_inactive: "Kode promo ini udah dinonaktifkan.",
   promo_expired: "Kode promo ini udah kedaluwarsa.",
   promo_exhausted: "Kuota kode promo ini udah habis.",
-  promo_already_redeemed: "This promo code has already been redeemed on this account / network.",
+  promo_already_redeemed: "Kode promo ini udah pernah dipakai di akun / jaringan ini.",
+  promo_not_for_package: "Kode promo ini cuma berlaku buat paket tertentu.",
   rate_limited: "Terlalu banyak percobaan, tunggu beberapa menit.",
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,6 +106,10 @@ export default function Beli() {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoMsg, setPromoMsg] = useState("");
   const [promoChecking, setPromoChecking] = useState(false);
+  // Cooldown anti-spam tombol cek kode: aktif 60 dtk setelah kena 429.
+  const [promoCooldown, setPromoCooldown] = useState(false);
+  const promoCooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (promoCooldownTimer.current) clearTimeout(promoCooldownTimer.current); }, []);
   // Kode promo cuma valid buat paket yang dipilih saat validasi — reset kalau paket diganti.
   useEffect(() => { clearPromo(); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
   // Info promo aktif + sisa kuota (poll 60 dtk).
@@ -111,6 +118,11 @@ export default function Beli() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
   const [qrisId, setQrisId] = useState<string | null>(null);
+  // Payload QRIS mentah: kalau ada, QR dirender lokal (react-qr-code) tanpa
+  // bergantung ke api.qrserver.com — itu penyebab kotak putih kadang-kadang.
+  const [qrisPayload, setQrisPayload] = useState<string | null>(null);
+  const [qrFailed, setQrFailed] = useState(false);
+  const [qrKey, setQrKey] = useState(0);
   const [payMethod, setPayMethod] = useState<"qris" | "solana" | "base">("qris");
   const [crypto, setCrypto] = useState<CryptoInfo | null>(null);
   const [addrCopied, setAddrCopied] = useState(false);
@@ -255,7 +267,7 @@ export default function Beli() {
     };
   }, [payVisible, orderId, showDone]);
 
-  const beginPayment = (id: string, amt: number, qris: string | null, expiresAt: string, scroll: boolean, method: "qris" | "solana" | "base" = "qris", ci: CryptoInfo | null = null, code: string | null = null) => {
+  const beginPayment = (id: string, amt: number, qris: string | null, expiresAt: string, scroll: boolean, method: "qris" | "solana" | "base" = "qris", ci: CryptoInfo | null = null, code: string | null = null, qp: string | null = null) => {
     expiresAtRef.current = expiresAt;
     orderIdRef.current = id;
     setOrderId(id);
@@ -263,6 +275,8 @@ export default function Beli() {
     setCodeCopied(false);
     setAmount(amt);
     setQrisId(qris);
+    setQrisPayload(qp);
+    setQrFailed(false);
     setPayMethod(method);
     setCrypto(ci);
     setCancelHidden(false);
@@ -286,7 +300,7 @@ export default function Beli() {
           return;
         }
         if (d.status === "expired") return;
-        beginPayment(resumeId, d.amount, d.qrisId ?? null, d.expiresAt, false, (d.payMethod as "qris" | "solana" | "base") ?? "qris", d.crypto ?? null, d.orderCode ?? null);
+        beginPayment(resumeId, d.amount, d.qrisId ?? null, d.expiresAt, false, (d.payMethod as "qris" | "solana" | "base") ?? "qris", d.crypto ?? null, d.orderCode ?? null, d.qrisPayload ?? null);
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -309,8 +323,18 @@ export default function Beli() {
         setPromoDiscount(0);
         setPromoMsg(t(PROMO_ERR[d.error ?? ""] ?? "Kode promo nggak valid."));
       }
-    } catch {
-      setPromoMsg(t("Gagal cek kode promo, coba lagi."));
+    } catch (e) {
+      // 429 jangan dibalas "coba lagi" generik — itu yang bikin buyer spam klik.
+      const code = (e as { code?: string })?.code;
+      const status = (e as { status?: number })?.status;
+      if (status === 429 || code === "rate_limited") {
+        setPromoMsg(t(PROMO_ERR.rate_limited));
+        setPromoCooldown(true);
+        if (promoCooldownTimer.current) clearTimeout(promoCooldownTimer.current);
+        promoCooldownTimer.current = setTimeout(() => setPromoCooldown(false), 60 * 1000);
+      } else {
+        setPromoMsg(t("Gagal cek kode promo, coba lagi."));
+      }
     } finally {
       setPromoChecking(false);
     }
@@ -330,7 +354,7 @@ export default function Beli() {
       const d = await api.createOrder(selected ?? "", email.trim(), tsToken, payMethod, keyMode === "extend" && extendKeyId ? extendKeyId : undefined, promo);
       setDoneKey(null);
       const ci: CryptoInfo | null = d.crypto ?? (d.address && d.usdcAmount ? { chain: d.chain ?? payMethod, address: d.address, usdcAmount: d.usdcAmount, rate: d.rate, reference: d.reference, solanaPayUrl: d.solanaPayUrl } : null);
-      beginPayment(d.id, d.amount, d.qrisId ?? null, d.expiresAt, true, payMethod, ci, d.orderCode ?? null);
+      beginPayment(d.id, d.amount, d.qrisId ?? null, d.expiresAt, true, payMethod, ci, d.orderCode ?? null, d.qrisPayload ?? null);
       setSearchParams({ order: d.id }, { replace: true });
     } catch (e) {
       const code = (e as { code?: string }).code;
@@ -478,7 +502,7 @@ export default function Beli() {
                     key={p.code}
                     type="button"
                     onClick={() => { setPromoInput(p.code); applyPromo(p.code); }}
-                    disabled={promoChecking}
+                    disabled={promoChecking || promoCooldown}
                     style={{
                       display: "flex", alignItems: "center", gap: 10, textAlign: "left",
                       padding: "10px 14px", borderRadius: 10, cursor: "pointer",
@@ -513,14 +537,14 @@ export default function Beli() {
                 <input
                   id="promoInput"
                   type="text"
-                  placeholder="cth: HEMAT10"
+                  placeholder={t("cth: HEMAT10")}
                   value={promoInput}
                   onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                   style={{ textTransform: "uppercase", fontFamily: "inherit" }}
                   maxLength={32}
                 />
-                <button type="button" className="btn" onClick={() => applyPromo()} disabled={promoChecking || !promoInput.trim()}>
-                  {promoChecking ? t("Cek…") : t("Pakai")}
+                <button type="button" className="btn" onClick={() => applyPromo()} disabled={promoChecking || promoCooldown || !promoInput.trim()}>
+                  {promoChecking ? t("Cek…") : promoCooldown ? t("Tunggu…") : t("Pakai")}
                 </button>
               </div>
             )}
@@ -533,7 +557,7 @@ export default function Beli() {
           <input
             id="emailInput"
             type="email"
-            placeholder="nama@email.com"
+            placeholder={t("nama@email.com")}
             autoComplete="email"
             style={{ fontFamily: "inherit" }}
             value={email}
@@ -628,7 +652,16 @@ export default function Beli() {
             <>
               <p>{t("Pakai e-wallet / m-banking apa aja. Jangan ubah nominalnya.")}</p>
               <p className="amt">{rp(amount)}{toUsd(amount, fx) && <span className="pkg-usd"> · {toUsd(amount, fx)}</span>}</p>
-              {qrisId && <img className="qrimg" src={"/qr/" + qrisId} alt={t("QRIS pembayaran")} />}
+              {qrisPayload ? (
+                <div className="qrimg"><QRCode value={qrisPayload} size={234} style={{ width: "100%", height: "auto" }} /></div>
+              ) : qrisId && !qrFailed ? (
+                <img key={qrKey} className="qrimg" src={"/qr/" + qrisId} alt={t("QRIS pembayaran")} onError={() => setQrFailed(true)} />
+              ) : qrisId ? (
+                <div className="qrimg" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                  <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("QR gagal dimuat. Coba muat ulang, atau buat pembayaran baru kalau sudah kedaluwarsa.")}</p>
+                  <button className="btn" type="button" onClick={() => { setQrFailed(false); setQrKey((k) => k + 1); }}>{t("Muat ulang QR")}</button>
+                </div>
+              ) : null}
             </>
           ) : crypto ? (
             <>

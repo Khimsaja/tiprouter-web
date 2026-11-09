@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { Users, Copy, Check, Share2, Gift, Trophy, History, Info, ChevronRight } from "lucide-react";
 import { PageHead } from "../components/DashLayout";
 import { api, fmtDate, type ReferralInfo, type ReferralBoard } from "../lib/api";
-import { useLang } from "../lib/i18n";
+import { tr, useLang } from "../lib/i18n";
 
 const BONUS_TIERS = [
-  { pkg: "Basic", days: "3 hari", price: "Rp8.000", bonus: 1 },
-  { pkg: "Plus", days: "7 hari", price: "Rp15.000", bonus: 1 },
-  { pkg: "Essential", days: "14 hari", price: "Rp24.000", bonus: 3 },
-  { pkg: "Pro", days: "30 hari", price: "Rp40.000", bonus: 4 },
+  { pkg: "Basic", days: "3 hari", price: "Rp10.000", bonus: 1 },
+  { pkg: "Plus", days: "7 hari", price: "Rp19.000", bonus: 1 },
+  { pkg: "Essential", days: "14 hari", price: "Rp30.000", bonus: 3 },
+  { pkg: "Pro", days: "30 hari", price: "Rp50.000", bonus: 4 },
 ];
 const MILESTONES = [
   { count: 5, bonus: 3 },
@@ -63,7 +63,7 @@ const CSS = `
 `;
 
 function shareLinks(link: string) {
-  const text = encodeURIComponent("Cobain TipRouter — API key AI unlimited semua model. Daftar pakai link ini, kita berdua dapat bonus hari tiap pembelian paket:");
+  const text = encodeURIComponent(tr("Cobain TipRouter — API key AI unlimited semua model. Daftar pakai link ini, kita berdua dapat bonus hari tiap pembelian paket:"));
   const u = encodeURIComponent(link);
   return {
     wa: `https://wa.me/?text=${text}%20${u}`,
@@ -137,7 +137,7 @@ export default function Referral() {
               <tbody>
                 {BONUS_TIERS.map((r) => (
                   <tr key={r.pkg}>
-                    <td><b>{r.pkg}</b> <span style={{ color: "var(--mut)" }}>{r.days}</span></td>
+                    <td><b>{r.pkg}</b> <span style={{ color: "var(--mut)" }}>{t(r.days)}</span></td>
                     <td>{r.price}</td>
                     <td className="b">+{r.bonus} {t("hari")}</td>
                     <td className="b">+{r.bonus} {t("hari")}</td>

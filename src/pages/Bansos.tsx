@@ -339,7 +339,7 @@ export default function Bansos() {
               {t("Key gacha itu")} <b>{t("key pribadi")}</b>{t(": unlimited token, semua model paket berbayar, mati sendiri pas durasinya habis.")}
             </li>
             <li>
-              {t("Batas pemakaian key gacha:")} <b>10 request/menit</b> {t("dan")} <b>1 {t("koneksi bersamaan")}</b>
+              {t("Batas pemakaian key gacha:")} <b>10 {t("request/menit")}</b> {t("dan")} <b>1 {t("koneksi bersamaan")}</b>
               {t(" — demi kenyamanan seluruh pengguna.")}
             </li>
             <li>{t("Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.")}</li>
