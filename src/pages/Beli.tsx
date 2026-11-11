@@ -18,7 +18,7 @@ import { api, rp, PACKAGES, promoDiscountLabel, usdIdr, toUsd, type Config, type
 import QRCode from "react-qr-code";
 import { useSession } from "../lib/session";
 import { useActivePromos } from "../lib/useActivePromos";
-import { localeTag, useLang } from "../lib/i18n";
+import { applyTitle, trEn, useLang } from "../lib/i18n";
 
 // Package-grid / QR styles from the vanilla beli page (index.css only carries
 // the shared components: card, btn, err, keybox, dot, hidden...).
@@ -85,7 +85,10 @@ const mmss = (sec: number) => String(Math.floor(sec / 60)).padStart(2, "0") + ":
 
 export default function Beli() {
   const { me, loading: sessionLoading } = useSession();
-  const { t } = useLang();
+  const { lang } = useLang();
+  // /beli is English-only (global buyers): every string on this page resolves
+  // against the EN dict no matter what the site language toggle says.
+  const t = trEn;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selected, setSelected] = useState<string | null>(null);
@@ -184,6 +187,24 @@ export default function Beli() {
       setEmailLocked(true);
     }
   }, [sessionEmail]);
+
+  // /beli stays English-only: force the EN title/meta and <html lang> while
+  // this page is mounted (the toggle in the header would otherwise flip the
+  // title back to Indonesian), and restore them when leaving the page.
+  useEffect(() => {
+    document.title = "Buy AI API Keys — TipRouter";
+    document.documentElement.lang = "en";
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        "content",
+        "Buy unlimited AI API keys: pick a plan, pay with QRIS, your key appears instantly. Trial from IDR 3,000.",
+      );
+    return () => {
+      document.documentElement.lang = lang === "en" ? "en" : "id";
+      applyTitle(window.location.pathname);
+    };
+  }, [lang]);
 
   const emailNote = emailLocked
     ? t("Kamu lagi login, key nempel ke akun {email}. Nggak usah isi manual.", { email })
@@ -465,7 +486,7 @@ export default function Beli() {
               className="btn primary"
               style={{ textDecoration: "none", display: "inline-block", marginTop: 6 }}
               href={`https://t.me/hermestele?text=${encodeURIComponent(
-                `Halo admin, saya mau pesan paket custom TipRouter:\n- Masa aktif: ${customDays} hari\n- Request per menit: ${customRpm}\n- Max concurrent: ${customConc}\n\nMohon info harga. Terima kasih.`
+                `Hello admin, I'd like to order a custom TipRouter plan:\n- Duration: ${customDays} days\n- Requests per minute: ${customRpm}\n- Max concurrent: ${customConc}\n\nPlease let me know the price. Thank you.`
               )}`}
               target="_blank"
               rel="noopener"
@@ -588,8 +609,8 @@ export default function Beli() {
                     {myKeys.filter((k) => k.source?.kind !== "gacha").map((k) => (
                       <option key={k.id} value={k.id}>
                         {(k.prefix ?? "tip_") + "…" + (k.hint ?? "") + " \u00b7 " + (k.status === "active"
-                          ? t("aktif sampai {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" }) })
-                          : t("expired {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" }) }))}
+                          ? t("aktif sampai {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }) })
+                          : t("expired {date}", { date: new Date(k.expiresAt ?? k.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }) }))}
                       </option>
                     ))}
                   </select>
@@ -666,7 +687,7 @@ export default function Beli() {
           ) : crypto ? (
             <>
               <p>{t(payMethod === "solana" ? "Scan pakai wallet Solana (Phantom, Solflare, dll). Nominal & referensi keisi otomatis." : "Kirim dari wallet apa aja pakai jaringan Base. Hanya USDC native.")}</p>
-              <p className="amt">{crypto.usdcAmount.toLocaleString(localeTag(), { maximumFractionDigits: 6 })} <span style={{ fontSize: "0.55em" }}>USDC</span></p>
+              <p className="amt">{crypto.usdcAmount.toLocaleString("en-US", { maximumFractionDigits: 6 })} <span style={{ fontSize: "0.55em" }}>USDC</span></p>
               <p className="muted" style={{ textAlign: "center", marginTop: -6 }}>
                 {t("Jaringan")}: {crypto.chain === "solana" ? "Solana" : "Base"}
               </p>
@@ -680,7 +701,7 @@ export default function Beli() {
                 <button className="btn" type="button" onClick={() => copyText(crypto.address, setAddrCopied)}>{addrCopied ? t("Tersalin") : t("Salin alamat")}</button>
               </div>
               <div className="addrbox">
-                <span className="mono">{crypto.usdcAmount.toLocaleString(localeTag(), { maximumFractionDigits: 6 })} USDC</span>
+                <span className="mono">{crypto.usdcAmount.toLocaleString("en-US", { maximumFractionDigits: 6 })} USDC</span>
                 <button className="btn" type="button" onClick={() => copyText(String(crypto.usdcAmount), setAmtCopied)}>{amtCopied ? t("Tersalin") : t("Salin nominal")}</button>
               </div>
               <p className="muted" style={{ marginTop: 10 }}>
@@ -742,7 +763,7 @@ export default function Beli() {
           {keyExpires && (
             <p className="muted" style={{ marginTop: 10 }}>
               {t("Masa aktif key sampai {date}.", {
-                date: new Date(keyExpires).toLocaleString(localeTag(), { dateStyle: "long", timeStyle: "short" }),
+                date: new Date(keyExpires).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" }),
               })}
             </p>
           )}

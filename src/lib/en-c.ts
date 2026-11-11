@@ -8,6 +8,7 @@ export const EN_C: Record<string, string> = {
   "Terlalu banyak percobaan, tunggu beberapa menit.": "Too many attempts, please wait a few minutes.",
   "Gagal bikin order, coba lagi.": "Couldn't create the order, please try again.",
   "Jaringan bermasalah, coba lagi.": "Network problem, please try again.",
+  "Kode promo nggak valid.": "That promo code isn't valid.",
   // Beli — payment status / flow
   "Menunggu pembayaran…": "Waiting for payment…",
   "Pembayaran diterima, key lagi dibuat…": "Payment received, creating your key…",
@@ -41,10 +42,14 @@ export const EN_C: Record<string, string> = {
   "Harga akhir ditambah kode unik Rp1–500 biar pembayaranmu gampang dicocokin. Bayar persis nominal yang tampil ya.":
     "A unique IDR 1–500 code is added to the final price so your payment is easy to match. Please pay the exact amount shown.",
   "Bikin QRIS…": "Creating QRIS…",
+  "Tunggu…": "Please wait…",
   "Buat QRIS Pembayaran": "Create Payment QRIS",
   "3. Scan & bayar": "3. Scan & pay",
   "Pakai e-wallet / m-banking apa aja. Jangan ubah nominalnya.": "Use any e-wallet / mobile banking. Don't change the amount.",
   "QRIS pembayaran": "Payment QRIS",
+  "QR gagal dimuat. Coba muat ulang, atau buat pembayaran baru kalau sudah kedaluwarsa.":
+    "QR failed to load. Try reloading, or create a new payment if it has expired.",
+  "Muat ulang QR": "Reload QR",
   "Sisa waktu": "Time left",
   "Batalkan pembayaran": "Cancel payment",
   "Pembayaran diterima": "Payment received",

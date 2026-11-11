@@ -26,6 +26,19 @@ export function tr(id: string, vars?: Record<string, string | number>): string {
   return s;
 }
 
+/**
+ * English-only lookup: always resolves against the EN dict, ignoring the
+ * current language. Used by pages that must render in English only (e.g. /beli,
+ * so global buyers never see Indonesian copy).
+ */
+export function trEn(id: string, vars?: Record<string, string | number>): string {
+  let s = EN[id] ?? id;
+  if (vars) {
+    for (const k of Object.keys(vars)) s = s.split("{" + k + "}").join(String(vars[k]));
+  }
+  return s;
+}
+
 type LangCtxT = { lang: Lang; setLang: (l: Lang) => void; t: typeof tr };
 const LangCtx = createContext<LangCtxT>({ lang: currentLang, setLang: () => {}, t: tr });
 
