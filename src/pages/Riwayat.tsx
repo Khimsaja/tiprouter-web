@@ -5,7 +5,7 @@ import { PageHead } from "../components/DashLayout";
 import { api, rp, fmtDate, PACKAGES, type HistoryData } from "../lib/api";
 import { useLang } from "../lib/i18n";
 
-// Tab styles (scoped di halaman ini; .paytab cuma ada di halaman /beli).
+// Tab styles (scoped di halaman ini; .paytab cuma ada di halaman /buy).
 const TABS_STYLE = `
 .rw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .rw-tab{padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--txt);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
@@ -113,14 +113,14 @@ export default function Riwayat() {
               tab === "beli" ? (
                 <p className="muted" style={{ marginTop: 12 }}>
                   {t("Belum ada pembelian.")}{" "}
-                  <Link to="/beli" style={{ textDecoration: "underline" }}>
+                  <Link to="/buy" style={{ textDecoration: "underline" }}>
                     {t("Beli API key")}
                   </Link>
                 </p>
               ) : (
                 <p className="muted" style={{ marginTop: 12 }}>
                   {t("Belum ada perpanjangan. Perpanjang key-mu dari halaman")}{" "}
-                  <Link to="/beli" style={{ textDecoration: "underline" }}>
+                  <Link to="/buy" style={{ textDecoration: "underline" }}>
                     {t("Beli")}
                   </Link>
                   .
@@ -135,7 +135,7 @@ export default function Riwayat() {
             {data.gacha.length === 0 && (
               <p className="muted" style={{ marginTop: 12 }}>
                 {t("Belum pernah gacha.")}{" "}
-                <Link to="/bansos" style={{ textDecoration: "underline" }}>
+                <Link to="/gacha" style={{ textDecoration: "underline" }}>
                   {t("Putar gacha")}
                 </Link>
               </p>

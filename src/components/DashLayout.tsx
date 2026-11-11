@@ -11,11 +11,11 @@ const LINKS = [
   { to: "/dashboard/usage", label: "Usage", icon: ListOrdered },
   { to: "/dashboard/models", label: "Model", icon: Sparkles },
   { to: "/dashboard/playground", label: "Playground", icon: FlaskConical },
-  { to: "/dashboard/riwayat", label: "Riwayat", icon: History },
-  { to: "/dashboard/panduan", label: "Panduan", icon: BookOpenText },
-  { to: "/bansos", label: "Gacha Bansos", icon: Gift },
+  { to: "/dashboard/history", label: "Riwayat", icon: History },
+  { to: "/dashboard/guide", label: "Panduan", icon: BookOpenText },
+  { to: "/gacha", label: "Gacha Bansos", icon: Gift },
   { to: "/referral", label: "Referral", icon: Users },
-  { to: "/notifikasi", label: "Notifikasi", icon: Bell },
+  { to: "/notifications", label: "Notifikasi", icon: Bell },
   { to: "/profile", label: "Profil", icon: CircleUserRound, group: "Akun" },
 ];
 

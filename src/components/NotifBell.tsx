@@ -133,7 +133,7 @@ export default function NotifBell() {
               return (
                 <Link
                   key={n.id}
-                  to={n.link || "/notifikasi"}
+                  to={n.link || "/notifications"}
                   className={"notif-item" + (n.read ? "" : " unread")}
                   onClick={() => setOpen(false)}
                 >
@@ -152,7 +152,7 @@ export default function NotifBell() {
               );
             })}
           </div>
-          <Link to="/notifikasi" className="notif-all" onClick={() => setOpen(false)}>
+          <Link to="/notifications" className="notif-all" onClick={() => setOpen(false)}>
             {t("Lihat semua")}
           </Link>
         </div>

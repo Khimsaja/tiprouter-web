@@ -47,13 +47,13 @@ export function SiteHeader() {
         <nav className={"main" + (open ? " open" : "")}>
           <a href="/#model" onClick={anchor("#model")}>{t("Model")}</a>
           <a href="/#harga" onClick={anchor("#harga")}>{t("Harga")}</a>
-          <NavLink to="/bansos" onClick={() => setOpen(false)}>Bansos</NavLink>
+          <NavLink to="/gacha" onClick={() => setOpen(false)}>Bansos</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
           <NavLink to="/status" onClick={() => setOpen(false)}>{t("Status")}</NavLink>
           <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
           <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
-          <NavLink to="/beli" className="mnav-cta" onClick={() => setOpen(false)}>{t("Beli Sekarang")}</NavLink>
+          <NavLink to="/buy" className="mnav-cta" onClick={() => setOpen(false)}>{t("Beli Sekarang")}</NavLink>
           <div className="mnav-lang">
             <span>{t("Bahasa")}</span>
             <LanguageToggle />
@@ -64,7 +64,7 @@ export function SiteHeader() {
         ) : (
           <Link className="btn sm" to="/login">{t("Masuk")}</Link>
         )}
-        <Link className="btn primary sm" to="/beli">{t("Beli Sekarang")}</Link>
+        <Link className="btn primary sm" to="/buy">{t("Beli Sekarang")}</Link>
         <LanguageToggle />
         <ThemeToggle />
         {me && <NotifBell />}
@@ -83,10 +83,10 @@ export function SiteFooter() {
           <span><strong>TipRouter</strong> — {t("API key AI unlimited dari Indonesia.")}</span>
         </span>
         <code>https://tiprouter.my.id/v1</code>
-        <Link to="/syarat" style={{ textDecoration: "underline" }}>
+        <Link to="/terms" style={{ textDecoration: "underline" }}>
           {t("Syarat & Ketentuan")}
         </Link>
-        <Link to="/statistik" style={{ textDecoration: "underline" }}>
+        <Link to="/statistics" style={{ textDecoration: "underline" }}>
           {t("Statistik")}
         </Link>
         <Link to="/status" style={{ textDecoration: "underline" }}>

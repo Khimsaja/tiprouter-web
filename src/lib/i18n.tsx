@@ -28,7 +28,7 @@ export function tr(id: string, vars?: Record<string, string | number>): string {
 
 /**
  * English-only lookup: always resolves against the EN dict, ignoring the
- * current language. Used by pages that must render in English only (e.g. /beli,
+ * current language. Used by pages that must render in English only (e.g. /buy,
  * so global buyers never see Indonesian copy).
  */
 export function trEn(id: string, vars?: Record<string, string | number>): string {
@@ -44,7 +44,7 @@ const LangCtx = createContext<LangCtxT>({ lang: currentLang, setLang: () => {}, 
 
 const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: string }> = {
   "/": { id: "TipRouter — API Key AI Unlimited", en: "TipRouter — Unlimited AI API Keys" },
-  "/bansos": {
+  "/gacha": {
     id: "Gacha Bansos — TipRouter",
     en: "Bansos Gacha — TipRouter",
     dId: "Gacha Bansos TipRouter: satu putaran gratis per akun, dapet API key pribadi 1–24 jam. Login dan putar.",
@@ -57,7 +57,7 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
     dEn: "Spin the wheel and get a random number from your chosen range, 1 to 10,000. For draws, giveaways, or picking numbers.",
   },
   "/login": { id: "Masuk — TipRouter", en: "Log In — TipRouter" },
-  "/beli": {
+  "/buy": {
     id: "Beli API Key AI — TipRouter",
     en: "Buy AI API Keys — TipRouter",
     dId: "Beli API key AI unlimited: pilih paket, bayar QRIS, key langsung keluar. Trial mulai Rp3.000.",
@@ -67,8 +67,8 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
   "/dashboard/keys": { id: "API Keys — TipRouter", en: "API Keys — TipRouter" },
   "/dashboard/usage": { id: "Usage — TipRouter", en: "Usage — TipRouter" },
   "/dashboard/models": { id: "Model — TipRouter", en: "Models — TipRouter" },
-  "/dashboard/panduan": { id: "Panduan — TipRouter", en: "Guide — TipRouter" },
-  "/dashboard/riwayat": { id: "Riwayat — TipRouter", en: "History — TipRouter" },
+  "/dashboard/guide": { id: "Panduan — TipRouter", en: "Guide — TipRouter" },
+  "/dashboard/history": { id: "Riwayat — TipRouter", en: "History — TipRouter" },
   "/profile": { id: "Profil — TipRouter", en: "Profile — TipRouter" },
   "/referral": {
     id: "Referral — TipRouter",
@@ -76,7 +76,7 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
     dId: "Undang teman ke TipRouter: tiap pembelian paket lewat link kamu, kamu dan temanmu sama-sama dapat bonus hari.",
     dEn: "Invite friends to TipRouter: every package purchase through your link earns bonus days for both you and your friend.",
   },
-  "/syarat": {
+  "/terms": {
     id: "Syarat & Ketentuan — TipRouter",
     en: "Terms & Conditions — TipRouter",
     dId: "Syarat & Ketentuan TipRouter: layanan API key unlimited, ketersediaan model, fair use, pembayaran, dan refund.",
@@ -94,7 +94,7 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
     dId: "Lihat status kesehatan tiap model AI TipRouter: tingkat keberhasilan 1 jam terakhir, diperbarui tiap menit.",
     dEn: "Check each TipRouter AI model's health: 1-hour success rate, updated every minute.",
   },
-  "/statistik": {
+  "/statistics": {
     id: "Statistik Jaringan — TipRouter",
     en: "Network Statistics — TipRouter",
     dId: "Statistik live jaringan TipRouter 24 jam terakhir: total request, input/output token, dan model terlaris.",

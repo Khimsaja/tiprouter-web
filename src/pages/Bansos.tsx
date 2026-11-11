@@ -344,7 +344,7 @@ export default function Bansos() {
             </li>
             <li>{t("Hasil putaran final — durasi yang keluar nggak bisa ditukar atau diulang.")}</li>
             <li>
-              {t("Habis masa gacha dan mau lanjut tanpa putus?")} <Link to="/beli">{t("Paket TipRouter")}</Link>{" "}
+              {t("Habis masa gacha dan mau lanjut tanpa putus?")} <Link to="/buy">{t("Paket TipRouter")}</Link>{" "}
               {t("mulai Rp3.000, key langsung aktif.")}
             </li>
           </ul>

@@ -273,7 +273,7 @@ function StatsCard() {
           <span className="dot" />
           Open for requests
         </span>
-        <Link to="/statistik" className="r" style={{ textDecoration: "underline" }}>{t("Lihat statistik lengkap")}</Link>
+        <Link to="/statistics" className="r" style={{ textDecoration: "underline" }}>{t("Lihat statistik lengkap")}</Link>
       </div>
       {error && !stats && (
         <p className="ld-stats-note">{t("Statistik lagi tidak bisa dimuat. Coba refresh halaman.")}</p>
@@ -456,7 +456,7 @@ export default function Landing() {
                 {t("Bayar sekali untuk masa aktif 1 sampai 30 hari, lalu pakai semua model AI sepuasnya. Tanpa hitung token, tanpa kartu kredit.")}
               </p>
               <div className="ld-hero-cta">
-                <Link className="btn primary" to="/beli">
+                <Link className="btn primary" to="/buy">
                   {t("Beli Sekarang")}
                 </Link>
                 <a className="btn" href="#model">
@@ -639,7 +639,7 @@ export default function Landing() {
                         : t("Kuota tanpa batas")}
                     </p>
                   </div>
-                  <Link className="btn sm" to="/beli">
+                  <Link className="btn sm" to="/buy">
                     {t("Pakai kode")}
                   </Link>
                 </div>
@@ -659,7 +659,7 @@ export default function Landing() {
                     <li key={f}>{t(f)}</li>
                   ))}
                 </ul>
-                <Link className="btn" to="/beli">
+                <Link className="btn" to="/buy">
                   {t("Beli Sekarang")}
                 </Link>
               </div>
@@ -730,7 +730,7 @@ export default function Landing() {
             {t("Berhenti kena limit")} <em>{t("hari ini.")}</em>
           </h2>
           <p>{t("Satu key, {n} model, aktif dalam semenit. Masa aktif mulai dari 1 hari, tanpa kartu kredit.", { n: modelIds.length })}</p>
-          <Link className="btn" to="/beli">
+          <Link className="btn" to="/buy">
             {t("Beli Sekarang")}
           </Link>
         </div>

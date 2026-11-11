@@ -307,7 +307,7 @@ function ReasonMsg({ reason }: { reason?: string }) {
     return (
       <p>
         {t("Belum ada key yang ketemu buat akun ini.")}{" "}
-        <Link to="/beli">{t("Beli API key")}</Link>{" "}
+        <Link to="/buy">{t("Beli API key")}</Link>{" "}
         {t("lewat web langsung keluar, atau hubungkan Telegram di menu Profil kalau key kamu dari bot.")}
       </p>
     );
@@ -333,7 +333,7 @@ export default function Keys() {
           {t("Belum ada key yang cocok buat akun ini. Kalau key kamu dari bot, hubungkan Telegram di menu Profil. Belum punya key? Beli lewat web, key langsung keluar.")}
         </p>
         <div className="btns">
-          <Link className="btn primary" to="/beli">
+          <Link className="btn primary" to="/buy">
             {t("Beli API key")}
           </Link>
         </div>
@@ -406,7 +406,7 @@ export default function Keys() {
           </Fragment>
         ))}
         <div className="btns">
-          <Link className="btn primary" to="/beli">
+          <Link className="btn primary" to="/buy">
             {t("Beli API Key Lagi")}
           </Link>
         </div>

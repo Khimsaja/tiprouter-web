@@ -334,7 +334,7 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
               {msgs.length === 0 ? (
                 <div className="chat-empty">
                   {t("Belum ada pesan. Tulis sesuatu di bawah buat mulai.")}<br />
-                  {!me ? <span>{t("Belum punya key?")} <Link to="/beli" style={{ textDecoration: "underline" }}>{t("Beli di sini")}</Link></span> : null}
+                  {!me ? <span>{t("Belum punya key?")} <Link to="/buy" style={{ textDecoration: "underline" }}>{t("Beli di sini")}</Link></span> : null}
                 </div>
               ) : (
                 msgs.map((m, i) => (

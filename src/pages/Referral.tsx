@@ -176,7 +176,7 @@ export default function Referral() {
               <div className="rf-step"><span className="num">2</span><p><b>{t("Teman daftar & beli")}</b> — {t("mereka daftar lewat link kamu lalu beli paket apa pun kecuali Trial.")}</p></div>
               <div className="rf-step"><span className="num">3</span><p><b>{t("Dua-duanya dapat bonus")}</b> — {t("key teman langsung diperpanjang sesuai tabel bonus, dan kamu dapat bonus yang sama otomatis.")}</p></div>
             </div>
-            <Link to="/beli" className="rf-btn" style={{ marginTop: 14, textDecoration: "none" }}>
+            <Link to="/buy" className="rf-btn" style={{ marginTop: 14, textDecoration: "none" }}>
               {t("Lihat paket")} <ChevronRight size={15} />
             </Link>
           </div>

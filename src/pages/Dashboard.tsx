@@ -59,7 +59,7 @@ function ReasonMsg({ reason }: { reason?: string }) {
     return (
       <p>
         {t("Belum ada key yang ketemu buat akun ini.")}{" "}
-        <Link to="/beli">{t("Beli API key")}</Link>{" "}
+        <Link to="/buy">{t("Beli API key")}</Link>{" "}
         {t("lewat web langsung keluar, atau hubungkan Telegram di menu Profil kalau key kamu dari bot.")}
       </p>
     );
@@ -155,7 +155,7 @@ export default function Dashboard() {
           <i style={{ width: progWidth + "%" }} />
         </div>
         <div className="btns">
-          <Link className="btn primary" to="/beli">
+          <Link className="btn primary" to="/buy">
             {primary ? t("Perpanjang Paket") : t("Beli API key")}
           </Link>
         </div>

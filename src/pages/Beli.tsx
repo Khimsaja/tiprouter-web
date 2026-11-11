@@ -502,11 +502,11 @@ export default function Beli() {
               {t("Beli sekarang wajib login. Masuk pakai Google atau GitHub, abis itu kamu balik lagi ke sini buat lanjut bayar. Key otomatis nempel ke akunmu.")}
             </p>
             <div className="btns">
-              <a className="btn primary" href="/auth/google/start?next=/beli" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <a className="btn primary" href="/auth/google/start?next=/buy" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <GoogleIcon />
                 {t("Masuk dengan Google")}
               </a>
-              <a className="btn" href="/auth/github/start?next=/beli" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <a className="btn" href="/auth/github/start?next=/buy" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <Github size={17} />
                 {t("Masuk dengan GitHub")}
               </a>
@@ -640,7 +640,7 @@ export default function Beli() {
             />
             <span>
               {t("Saya sudah membaca dan menyetujui")}{" "}
-              <Link to="/syarat" target="_blank" rel="noopener" style={{ textDecoration: "underline", fontWeight: 600 }} onClick={(e) => e.stopPropagation()}>
+              <Link to="/terms" target="_blank" rel="noopener" style={{ textDecoration: "underline", fontWeight: 600 }} onClick={(e) => e.stopPropagation()}>
                 {t("Syarat & Ketentuan")}
               </Link>
               {t(" TipRouter.")}

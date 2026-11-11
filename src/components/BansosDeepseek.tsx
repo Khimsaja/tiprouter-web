@@ -259,7 +259,7 @@ export default function BansosDeepseek() {
                 {exhausted ? (
                   <>
                     {t("Bansos global sudah habis. Masih ada bansos via gacha — ")}{" "}
-                    <Link to="/bansos" style={{ color: "var(--txt)", fontWeight: 700 }}>
+                    <Link to="/gacha" style={{ color: "var(--txt)", fontWeight: 700 }}>
                       {t("yuk login sekarang dan mulai gacha.")}
                     </Link>
                   </>
