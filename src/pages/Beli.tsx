@@ -438,7 +438,7 @@ export default function Beli() {
               <span className="pkg-name">{p.name}</span>
               <span className="pkg-price">{rp(p.price)}{toUsd(p.price, fx) && <span className="pkg-usd"> · {toUsd(p.price, fx)}</span>}</span>
               <span className="pkg-days">
-                {t("{days} hari", { days: p.days })} &middot; {t(p.blurb)}
+                {p.days === 1 ? t("1 hari") : t("{days} hari", { days: p.days })} &middot; {t(p.blurb)}
               </span>
             </button>
           ))}

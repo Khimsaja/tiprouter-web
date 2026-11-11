@@ -36,6 +36,7 @@ export const EN_C: Record<string, string> = {
   "Harga dihitung admin sesuai spek. Klik tombol di bawah, pesananmu terkirim otomatis ke admin via Telegram.": "The admin will price it based on your specs. Tap the button below — your order is sent to the admin automatically via Telegram.",
   "Chat admin & pesan custom": "Chat admin & order custom",
   "{days} hari": "{days} days",
+  "1 hari": "1 day",
   "Chat dulu": "Chat first",
   "Di luar daftar? Tanya admin": "Not on the list? Ask admin",
   "2. Email kamu": "2. Your email",
