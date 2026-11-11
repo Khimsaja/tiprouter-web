@@ -60,6 +60,7 @@ const Turnstile = forwardRef<TurnstileHandle, Props>(function Turnstile({ siteKe
         widgetId.current = window.turnstile.render(boxRef.current, {
           sitekey: siteKey,
           theme: "auto",
+          language: "en",
           callback: (token: string) => onTokenRef.current(token),
           "expired-callback": () => onTokenRef.current(null),
           "error-callback": () => onTokenRef.current(null),

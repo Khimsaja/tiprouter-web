@@ -116,17 +116,24 @@ const TITLES: Record<string, { id: string; en: string; dId?: string; dEn?: strin
 
 export function applyTitle(pathname: string) {
   const hit = TITLES[pathname];
-  const lang = currentLang;
+  const lang = langForPath(pathname);
   document.title = hit ? (lang === "en" ? hit.en : hit.id) : lang === "en" ? "TipRouter — Unlimited AI API Keys" : "TipRouter — API Key AI Unlimited";
   const desc = hit ? (lang === "en" ? hit.dEn : hit.dId) : undefined;
   if (desc) document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
+}
+
+/** Paths that always render in English, whatever the site toggle says. */
+const FORCE_EN_PATHS = new Set(["/buy"]);
+
+function langForPath(pathname: string): Lang {
+  return FORCE_EN_PATHS.has(pathname) ? "en" : currentLang;
 }
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(currentLang);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
+    document.documentElement.lang = langForPath(window.location.pathname);
     applyTitle(window.location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -138,7 +145,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-    document.documentElement.lang = l;
+    document.documentElement.lang = langForPath(window.location.pathname);
     applyTitle(window.location.pathname);
     setLangState(l);
   };

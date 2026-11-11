@@ -18,7 +18,7 @@ import { api, rp, PACKAGES, promoDiscountLabel, usdIdr, toUsd, type Config, type
 import QRCode from "react-qr-code";
 import { useSession } from "../lib/session";
 import { useActivePromos } from "../lib/useActivePromos";
-import { applyTitle, trEn, useLang } from "../lib/i18n";
+import { getLang, trEn } from "../lib/i18n";
 
 // Package-grid / QR styles from the vanilla beli page (index.css only carries
 // the shared components: card, btn, err, keybox, dot, hidden...).
@@ -85,8 +85,7 @@ const mmss = (sec: number) => String(Math.floor(sec / 60)).padStart(2, "0") + ":
 
 export default function Beli() {
   const { me, loading: sessionLoading } = useSession();
-  const { lang } = useLang();
-  // /beli is English-only (global buyers): every string on this page resolves
+  // /buy is English-only (global buyers): every string on this page resolves
   // against the EN dict no matter what the site language toggle says.
   const t = trEn;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -188,23 +187,15 @@ export default function Beli() {
     }
   }, [sessionEmail]);
 
-  // /beli stays English-only: force the EN title/meta and <html lang> while
-  // this page is mounted (the toggle in the header would otherwise flip the
-  // title back to Indonesian), and restore them when leaving the page.
+  // /buy stays English-only: keep <html lang> English while this page is
+  // mounted (title/meta are forced EN centrally in applyTitle), and restore
+  // the toggle's language when leaving the page.
   useEffect(() => {
-    document.title = "Buy AI API Keys — TipRouter";
     document.documentElement.lang = "en";
-    document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute(
-        "content",
-        "Buy unlimited AI API keys: pick a plan, pay with QRIS, your key appears instantly. Trial from IDR 3,000.",
-      );
     return () => {
-      document.documentElement.lang = lang === "en" ? "en" : "id";
-      applyTitle(window.location.pathname);
+      document.documentElement.lang = getLang() === "en" ? "en" : "id";
     };
-  }, [lang]);
+  }, []);
 
   const emailNote = emailLocked
     ? t("Kamu lagi login, key nempel ke akun {email}. Nggak usah isi manual.", { email })
