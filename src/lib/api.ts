@@ -119,10 +119,10 @@ export type GachaState =
 
 export const PACKAGES = [
   { key: "trial", name: "Trial", days: 1, price: 3000, blurb: "Buat nyobain dulu" },
-  { key: "basic", name: "Basic", days: 3, price: 10000, blurb: "Paket santai" },
-  { key: "plus", name: "Plus", days: 7, price: 19000, blurb: "Seminggu penuh" },
-  { key: "essential", name: "Essential", days: 14, price: 30000, blurb: "Dua minggu" },
-  { key: "pro", name: "Pro", days: 30, price: 50000, blurb: "Paling hemat per hari" },
+  { key: "basic", name: "Basic", days: 3, price: 8000, blurb: "Paket santai" },
+  { key: "plus", name: "Plus", days: 7, price: 15000, blurb: "Seminggu penuh" },
+  { key: "essential", name: "Essential", days: 14, price: 24000, blurb: "Dua minggu" },
+  { key: "pro", name: "Pro", days: 30, price: 40000, blurb: "Paling hemat per hari" },
 ] as const;
 
 async function j<T>(res: Response): Promise<T> {
