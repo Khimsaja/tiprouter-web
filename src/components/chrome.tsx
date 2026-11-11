@@ -46,11 +46,11 @@ export function SiteHeader() {
         </button>
         <nav className={"main" + (open ? " open" : "")}>
           <a href="/#model" onClick={anchor("#model")}>{t("Model")}</a>
-          <a href="/#harga" onClick={anchor("#harga")}>{t("Harga")}</a>
+          <a href="/#pricing" onClick={anchor("#pricing")}>{t("Harga")}</a>
           <NavLink to="/gacha" onClick={() => setOpen(false)}>Bansos</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
           <NavLink to="/status" onClick={() => setOpen(false)}>{t("Status")}</NavLink>
-          <a href="/#cara-pakai" onClick={anchor("#cara-pakai")}>{t("Cara Pakai")}</a>
+          <a href="/#how-it-works" onClick={anchor("#how-it-works")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
           <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
           <NavLink to="/buy" className="mnav-cta" onClick={() => setOpen(false)}>{t("Beli Sekarang")}</NavLink>

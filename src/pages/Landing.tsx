@@ -403,10 +403,13 @@ export default function Landing() {
     };
   }, []);
 
-  // Scroll to the section named by location.hash on mount (e.g. arriving from /#harga).
+  // Scroll to the section named by location.hash on mount (e.g. arriving from /#pricing).
+  // Legacy Indonesian anchors still land on the right section.
+  const LEGACY_HASH: Record<string, string> = { "#harga": "#pricing", "#cara-pakai": "#how-it-works" };
   useEffect(() => {
     if (!window.location.hash) return;
-    const el = document.querySelector(window.location.hash);
+    const hash = LEGACY_HASH[window.location.hash] ?? window.location.hash;
+    const el = document.querySelector(hash);
     if (!el) return;
     const t = window.setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 80);
     return () => window.clearTimeout(t);
@@ -546,7 +549,7 @@ export default function Landing() {
           </p>
         </section>
 
-        <section className="ld-section" id="cara-pakai">
+        <section className="ld-section" id="how-it-works">
           <p className="ld-label">{t("Cara Pakai")}</p>
           <h2 className="ld-sec">
             {t("Mulai dalam")} <em>{t("tiga langkah.")}</em>
@@ -608,7 +611,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="ld-section" id="harga">
+        <section className="ld-section" id="pricing">
           <p className="ld-label">Pricing</p>
           <h2 className="ld-sec">
             {t("Pilih masa")} <em>{t("aktifmu.")}</em>
