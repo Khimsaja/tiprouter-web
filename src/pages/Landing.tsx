@@ -113,6 +113,7 @@ html[data-theme="dark"] .ld{
 .ld .brand em{font-style:normal;color:var(--accent)}
 .ld .nav-links{display:flex;gap:2px;margin-left:auto}
 .ld .nav-lang{display:none}
+.ld .mnav-auth{display:none}
 .ld .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--ink-2);padding:7px 11px;border-radius:10px;min-height:36px;display:inline-flex;align-items:center;white-space:nowrap}
 .ld .nav-links a:hover{color:var(--ink);background:var(--chip)}
 .ld .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -337,6 +338,7 @@ html[data-theme="dark"] .ld{
     -webkit-backdrop-filter:blur(32px) saturate(1.4);backdrop-filter:blur(32px) saturate(1.4)}
   .ld .nav-links.open a{padding:12px 14px}
   .ld .nav-links.open .nav-lang{display:flex;padding:8px 14px 10px}
+  .ld .nav-links.open .mnav-auth{display:flex;flex-direction:column;border-top:1px solid var(--stroke);margin-top:4px;padding-top:4px}
   .ld .nav{position:relative}
   .ld .burger{display:grid}
   .ld .nav .btn-login{display:none}
@@ -583,6 +585,10 @@ export default function Landing() {
             <Link to="/gacha" onClick={closeNav}>{t("Bansos Gacha")}</Link>
             <Link to="/status" onClick={closeNav}>{t("Status")}</Link>
             <a href="#faq" onClick={closeNav}>FAQ</a>
+            <div className="mnav-auth">
+              <Link to="/login" onClick={closeNav}>{t("Masuk")}</Link>
+              <Link to="/dashboard" onClick={closeNav}>{t("Dashboard")}</Link>
+            </div>
             <div className="nav-lang"><LanguageToggle /></div>
           </nav>
           <div className="nav-right">
