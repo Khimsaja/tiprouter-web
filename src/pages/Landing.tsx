@@ -15,6 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LanguageToggle, useLang } from "../lib/i18n";
+import { useSession } from "../lib/session";
 import { ThemeToggle } from "../components/ThemeToggle";
 
 /*
@@ -440,6 +441,7 @@ const QS_LIBRE = (
 
 export default function Landing() {
   const { t } = useLang();
+  const { me } = useSession();
   // Data konten landing — di dalam komponen supaya t() aktif (bahasa ikut toggle).
   const PICK_MODELS = [
     { id: "deepseek-v4.1-flash-1017", desc: t("Workhorse harian — cepat & murah buat coding") },
@@ -585,7 +587,7 @@ export default function Landing() {
             <Link to="/status" onClick={closeNav}>{t("Status")}</Link>
             <a href="#faq" onClick={closeNav}>FAQ</a>
             <div className="mnav-auth">
-              <Link to="/login" onClick={closeNav}>{t("Masuk")}</Link>
+              {!me ? <Link to="/login" onClick={closeNav}>{t("Masuk")}</Link> : null}
               <Link to="/dashboard" onClick={closeNav}>{t("Dashboard")}</Link>
             </div>
             <div className="nav-lang"><LanguageToggle /></div>
@@ -594,9 +596,8 @@ export default function Landing() {
           <div className="nav-right">
             <LanguageToggle />
             <ThemeToggle />
-            <Link className="btn btn-ghost btn-sm btn-login" to="/login">{t("Masuk")}</Link>
+            {!me ? <Link className="btn btn-ghost btn-sm btn-login" to="/login">{t("Masuk")}</Link> : null}
             <Link className="btn btn-ghost btn-sm btn-login" to="/dashboard">{t("Dashboard")}</Link>
-            <Link className="btn btn-primary btn-sm" to="/buy">{t("Beli Sekarang")}</Link>
           </div>
         </header>
       </div>
