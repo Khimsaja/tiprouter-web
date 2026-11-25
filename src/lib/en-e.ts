@@ -151,6 +151,7 @@ export const EN_E: Record<string, string> = {
   // Landing — model picker
   "Workhorse harian — cepat & murah buat coding": "Daily workhorse — fast & cheap for coding",
   "Flash dari keluarga GLM — respons gesit": "Flash from the GLM family — snappy responses",
+  "Haiku 5.5 dari Claude — ringan & cepat buat coding": "Claude's Haiku 5.5 — light & fast for coding",
   "Model event Qoder — reasoning + konteks besar": "Qoder event model — reasoning + large context",
 
   // Landing — kartu harga

@@ -113,6 +113,7 @@ html[data-theme="dark"] .ld{
 .ld .brand em{font-style:normal;color:var(--accent)}
 .ld .nav-links{display:flex;gap:2px;margin-left:auto}
 .ld .nav-lang{display:none}
+.ld .nav-theme{display:none}
 .ld .mnav-auth{display:none}
 .ld .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--ink-2);padding:7px 11px;border-radius:10px;min-height:36px;display:inline-flex;align-items:center;white-space:nowrap}
 .ld .nav-links a:hover{color:var(--ink);background:var(--chip)}
@@ -338,6 +339,9 @@ html[data-theme="dark"] .ld{
     -webkit-backdrop-filter:blur(32px) saturate(1.4);backdrop-filter:blur(32px) saturate(1.4)}
   .ld .nav-links.open a{padding:12px 14px}
   .ld .nav-links.open .nav-lang{display:flex;padding:8px 14px 10px}
+  .ld .nav-links.open .nav-theme{display:flex;padding:8px 14px 10px}
+  .ld .nav .btn-primary{display:none}
+  .ld .nav-right .theme-toggle{display:none}
   .ld .nav-links.open .mnav-auth{display:flex;flex-direction:column;border-top:1px solid var(--stroke);margin-top:4px;padding-top:4px}
   .ld .nav{position:relative}
   .ld .burger{display:grid}
@@ -439,7 +443,7 @@ export default function Landing() {
   const PICK_MODELS = [
     { id: "deepseek-v4.1-flash-1017", desc: t("Workhorse harian — cepat & murah buat coding") },
     { id: "glm-5.3-flash-1017", desc: t("Flash dari keluarga GLM — respons gesit") },
-    { id: "hungerg", desc: t("Model event Qoder — reasoning + konteks besar") },
+    { id: "claude-haiku-5-5", desc: t("Haiku 5.5 dari Claude — ringan & cepat buat coding") },
   ];
   const PRICE_CARDS = [
     { plan: "Trial", amount: "Rp3.000", dur: t("Masa aktif 1 hari"), bullets: [t("Akses 33+ model"), t("Cocok buat tes dulu"), t("QRIS, aktif otomatis")], btn: t("Pilih Trial"), hot: false },
@@ -590,6 +594,7 @@ export default function Landing() {
               <Link to="/dashboard" onClick={closeNav}>{t("Dashboard")}</Link>
             </div>
             <div className="nav-lang"><LanguageToggle /></div>
+            <div className="nav-theme"><ThemeToggle /></div>
           </nav>
           <div className="nav-right">
             <LanguageToggle />
