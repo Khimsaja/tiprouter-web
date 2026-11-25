@@ -6,6 +6,7 @@ export const EN_D: Record<string, string> = {
   "Tanpa masa habis": "No expiry",
   "Habis sejak {date}": "Expired since {date}",
   "Sampai {date} ({days} hari lagi)": "Until {date} ({days} days left)",
+  "Sampai {date} (1 hari lagi)": "Until {date} (1 day left)",
   "Belum ada key yang ketemu buat akun ini.": "No key found for this account yet.",
   "Beli API key": "Buy API Key",
   "lewat web langsung keluar, atau hubungkan Telegram di menu Profil kalau key kamu dari bot.":
@@ -14,7 +15,9 @@ export const EN_D: Record<string, string> = {
     "Key data can't be loaded right now. Try reloading the page in a moment.",
   "Mengambil data key.": "Loading key data.",
   "{n} model": "{n} models",
+  "1 model": "1 model",
   "{n} token": "{n} tokens",
+  "1 token": "1 token",
 
   // Dashboard
   "Ringkasan key dan masa aktif kamu.": "Summary of your keys and their active periods.",
@@ -35,6 +38,7 @@ export const EN_D: Record<string, string> = {
     "This key expired on {date}. Renew it to use it again.",
   "Berlaku sampai {date} — sisa {days} hari ({pct}%).": "Valid until {date} — {days} days left ({pct}%).",
   "Berlaku sampai {date} — sisa {days} hari.": "Valid until {date} — {days} days left.",
+  "Berlaku sampai {date} — sisa 1 hari.": "Valid until {date} — 1 day left.",
   "Key ini nggak punya masa habis. Santai, nggak perlu mikirin perpanjangan.":
     "This key never expires. Relax, no need to think about renewals.",
   "{days} hari": "{days} days",

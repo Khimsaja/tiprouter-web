@@ -291,7 +291,7 @@ label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
   border-radius: 16px; padding: 16px;
 }
 .stat .lab { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
-.stat .val { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+.stat .val { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stat .sub2 { font-size: 12px; color: var(--mut); margin-top: 2px; word-break: break-word; }
 @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) { .stat { padding: 12px; } .stat .val { font-size: 20px; } }
@@ -300,8 +300,10 @@ label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
   padding: 13px 0; border-bottom: 1px solid var(--border-soft);
 }
 .row:last-child { border-bottom: 0; }
-.row .who { font-weight: 700; font-size: 14.5px; }
-.row .meta { color: var(--mut); font-size: 13px; margin-top: 1px; }
+.row>div:first-child { min-width: 0; }
+.row .right { flex: none; }
+.row .who { font-weight: 700; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .meta { color: var(--mut); font-size: 13px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .codebox {
   font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
   background: rgba(15, 23, 42, 0.9); color: #f1f5f9;

@@ -61,9 +61,9 @@ function StatusChip({ status }: { status: KeyItem["status"] }) {
 function expiryText(k: KeyItem) {
   const left = daysLeft(k.expiresAt);
   if (!k.expiresAt) return tr("Tanpa masa habis");
-  return left === 0
-    ? tr("Habis sejak {date}", { date: fmtDate(k.expiresAt) })
-    : tr("Sampai {date} ({days} hari lagi)", { date: fmtDate(k.expiresAt), days: left ?? 0 });
+  if (left === 0) return tr("Habis sejak {date}", { date: fmtDate(k.expiresAt) });
+  if (left === 1) return tr("Sampai {date} (1 hari lagi)", { date: fmtDate(k.expiresAt) });
+  return tr("Sampai {date} ({days} hari lagi)", { date: fmtDate(k.expiresAt), days: left ?? 0 });
 }
 
 function pctLeft(k: KeyItem) {
@@ -280,7 +280,6 @@ export default function Dashboard() {
   let statDays = "-";
   let statDaysSub = "";
   let statTokens = "-";
-  let statModels = "-";
   let progText = t("Mengambil data key.");
   let progWidth = 0;
   let summary: ReactNode = <p>{t("Mengambil data key.")}</p>;
@@ -296,16 +295,15 @@ export default function Dashboard() {
   } else if (primary) {
     statStatus = primary.status === "active" ? t("Aktif") : primary.status === "expired" ? t("Habis") : t("Nonaktif");
     statStatusSub = primary.label || "";
-    statDays = primary.expiresAt ? (left === 0 ? t("Habis") : t("{days} hari", { days: left ?? 0 })) : "∞";
+    statDays = primary.expiresAt ? (left === 0 ? t("Habis") : left === 1 ? t("1 hari") : t("{days} hari", { days: left ?? 0 })) : "∞";
     statDaysSub = primary.expiresAt ? t("sampai {date}", { date: fmtDate(primary.expiresAt) }) : t("tanpa masa habis");
     statTokens = fmtNum(primary.tokensConsumed);
-    statModels = primary.modelCount ? String(primary.modelCount) : "-";
     progText = primary.expiresAt
       ? left === 0
         ? t("Masa aktif key ini udah habis sejak {date}. Perpanjang biar bisa dipakai lagi.", { date: fmtDate(primary.expiresAt) })
-        : pct === null
-          ? t("Berlaku sampai {date} — sisa {days} hari.", { date: fmtDate(primary.expiresAt), days: left ?? 0 })
-          : t("Berlaku sampai {date} — sisa {days} hari ({pct}%).", { date: fmtDate(primary.expiresAt), days: left ?? 0, pct })
+        : left === 1
+          ? t("Berlaku sampai {date} — sisa 1 hari.", { date: fmtDate(primary.expiresAt) })
+          : t("Berlaku sampai {date} — sisa {days} hari.", { date: fmtDate(primary.expiresAt), days: left ?? 0 })
       : t("Key ini nggak punya masa habis. Santai, nggak perlu mikirin perpanjangan.");
     progWidth = pct === null ? 100 : pct;
     summary = keys.map((k) => (
@@ -313,7 +311,7 @@ export default function Dashboard() {
         <div>
           <p className="who">{k.label}</p>
           <p className="meta">
-            {expiryText(k)} · {t("{n} model", { n: k.modelCount || 0 })} · {t("{n} token", { n: fmtNum(k.tokensConsumed) })}
+            {expiryText(k)} · {k.modelCount === 1 ? t("1 model") : t("{n} model", { n: k.modelCount || 0 })} · {k.tokensConsumed === 1 ? t("1 token") : t("{n} token", { n: fmtNum(k.tokensConsumed) })}
           </p>
         </div>
         <div className="right">
@@ -352,7 +350,7 @@ export default function Dashboard() {
         <div className="stat dash-kpi">
           <span className="kpi-ico"><Gauge size={17} /></span>
           <p className="lab">{t("Limit rate")}</p>
-          <p className="val mono">{rpm} / 150 RPM</p>
+          <p className="val mono">{rpm} RPM</p>
           <p className="sub2">
             <span className="badge-ok"><span className="pulse-dot" />{statStatus}</span>
           </p>
@@ -363,7 +361,7 @@ export default function Dashboard() {
           <p className="lab">{t("Token terpakai")}</p>
           <p className="val mono">{statTokens}</p>
           <p className="sub2">{t("semua waktu")}</p>
-          <p className="sub2" style={{ marginTop: 6 }}>{t("{n} model", { n: primary?.modelCount || 0 })} · {statModels} {t("siap dipanggil")}</p>
+          <p className="sub2" style={{ marginTop: 6 }}>{(primary?.modelCount || 0) === 1 ? t("1 model") : t("{n} model", { n: primary?.modelCount || 0 })} {t("siap dipanggil")}</p>
         </div>
       </div>
       {/* Row 2 — control center */}

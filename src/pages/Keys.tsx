@@ -206,9 +206,9 @@ function SourceChip({ k }: { k: KeyItem }) {
 function expiryText(k: KeyItem) {
   const left = daysLeft(k.expiresAt);
   if (!k.expiresAt) return tr("Tanpa masa habis");
-  return left === 0
-    ? tr("Habis sejak {date}", { date: fmtDate(k.expiresAt) })
-    : tr("Sampai {date} ({days} hari lagi)", { date: fmtDate(k.expiresAt), days: left ?? 0 });
+  if (left === 0) return tr("Habis sejak {date}", { date: fmtDate(k.expiresAt) });
+  if (left === 1) return tr("Sampai {date} (1 hari lagi)", { date: fmtDate(k.expiresAt) });
+  return tr("Sampai {date} ({days} hari lagi)", { date: fmtDate(k.expiresAt), days: left ?? 0 });
 }
 
 function UnlinkKeyButton({ k, onDone }: { k: KeyItem; onDone: () => void }) {
@@ -383,7 +383,7 @@ export default function Keys() {
                     <br />
                     <span style={{ color: "var(--mut)", fontSize: 12 }}>{k.maxConcurrentRequests ? t("maks {n} barengan", { n: k.maxConcurrentRequests }) : "-"}</span>
                   </td>
-                  <td>{t("{n} model", { n: k.modelCount || 0 })}</td>
+                  <td>{k.modelCount === 1 ? t("1 model") : t("{n} model", { n: k.modelCount || 0 })}</td>
                   <td><UnlinkKeyButton k={k} onDone={() => setRefresh((r) => r + 1)} /></td>
                 </tr>
               ))}
