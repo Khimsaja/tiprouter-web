@@ -4,7 +4,6 @@ import { Send, Ticket, X } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
 import { useLang } from "../lib/i18n";
 import { useActivePromos } from "../lib/useActivePromos";
-import BansosDeepseek from "../components/BansosDeepseek";
 import { promoDiscountLabel, promoScopeNames, usdIdr, toUsd } from "../lib/api";
 
 const CSS = `
@@ -401,8 +400,6 @@ export default function Landing() {
             <p className="s">{t("per key, biar pool enak dipakai semua")}</p>
           </div>
         </div>
-
-        <BansosDeepseek />
 
         <section className="ld-section" id="model">
           <div className="ld-sec-head">
