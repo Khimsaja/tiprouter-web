@@ -28,8 +28,8 @@ import { ThemeToggle } from "../components/ThemeToggle";
 const CSS = `
 .ld{
   --radius:16px;
-  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --font:"Geist Variable",Geist,ui-sans-serif,system-ui,sans-serif;
+  --mono:"Geist Mono Variable","Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --ink:#0F172A;--ink-2:#475569;--ink-3:#64748B;
   --glass:linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,.07) 48%,rgba(255,255,255,.02)),rgba(255,255,255,.45);
   --glass-strong:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.1) 48%,rgba(255,255,255,.03)),rgba(255,255,255,.7);

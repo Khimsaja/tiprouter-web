@@ -1,10 +1,12 @@
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 @import "tailwindcss";
 
 /* ==========================================================================
    TipRouter — Clean-Tech Enterprise glass system
    Cool White & Sky Blue. Light-first; dark glass variant via [data-theme].
-   Fonts are loaded in index.html (Plus Jakarta Sans + JetBrains Mono,
-   display=swap) with system fallbacks here.
+   Fonts are self-hosted variable fonts (Geist + Geist Mono, same family as
+   openference.com) via @fontsource-variable, with system fallbacks here.
    ========================================================================== */
 
 @theme inline {
@@ -20,8 +22,8 @@
   --color-green: var(--green);
   --color-red: var(--red);
   --color-accent: var(--accent);
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Inter, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: "Geist Variable", Geist, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 :root {
