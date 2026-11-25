@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical, Bell, History } from "lucide-react";
+import { Navigate, NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { Gift, KeyRound, LayoutDashboard, ListOrdered, Sparkles, BookOpenText, CircleUserRound, Users, Menu, X, FlaskConical, Bell, History, Zap } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useLang } from "../lib/i18n";
 import { PublicLayout } from "./chrome";
@@ -35,6 +35,18 @@ function SideContent({ mechip, onNavigate }: { mechip: React.ReactNode; onNaviga
           </span>
         ))}
       </nav>
+      <div className="sidefoot">
+        <div className="glass-t2" style={{ borderRadius: 14, padding: 14 }}>
+          <p style={{ fontWeight: 800, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
+            <Zap size={15} style={{ color: "var(--accent)" }} />
+            {t("Butuh masa aktif lebih?")}
+          </p>
+          <p className="muted" style={{ marginTop: 4 }}>{t("Perpanjang key kamu dalam hitungan detik via QRIS.")}</p>
+          <Link className="btn primary sm" to="/buy" style={{ marginTop: 10, width: "100%" }} onClick={onNavigate}>
+            {t("Upgrade / Perpanjang")}
+          </Link>
+        </div>
+      </div>
     </>
   );
 }

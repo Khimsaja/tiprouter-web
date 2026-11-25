@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun, Send } from "lucide-react";
+import { Moon, Sun, Send, Waypoints } from "lucide-react";
 import { useSession } from "../lib/session";
 import { LanguageToggle, useLang } from "../lib/i18n";
 import NotifBell from "./NotifBell";
@@ -38,7 +38,9 @@ export function SiteHeader() {
     <header className="site">
       <div className="nav">
         <Link className="brand" to="/">
-          <img src="/logo-icon.png" alt={t("Logo TipRouter")} />
+          <span className="brand-mark" aria-hidden="true">
+            <Waypoints size={19} strokeWidth={2.2} />
+          </span>
           <span className="brand-txt">TipRouter</span>
         </Link>
         <button className="burger" aria-label={t("Buka menu")} aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -47,7 +49,7 @@ export function SiteHeader() {
         <nav className={"main" + (open ? " open" : "")}>
           <a href="/#model" onClick={anchor("#model")}>{t("Model")}</a>
           <a href="/#pricing" onClick={anchor("#pricing")}>{t("Harga")}</a>
-          <NavLink to="/gacha" onClick={() => setOpen(false)}>Bansos</NavLink>
+          <NavLink to="/gacha" onClick={() => setOpen(false)}>{t("Bansos Gacha")}</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
           <NavLink to="/status" onClick={() => setOpen(false)}>{t("Status")}</NavLink>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
@@ -85,8 +87,9 @@ export function SiteFooter() {
         <Link to="/terms" style={{ textDecoration: "underline" }}>
           {t("Syarat & Ketentuan")}
         </Link>
-        <Link to="/status" style={{ textDecoration: "underline" }}>
-          {t("Status")}
+        <Link to="/status" style={{ textDecoration: "underline", display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <span className="pulse-dot" aria-hidden="true" />
+          {t("Status API")}
         </Link>
         <a
           href="https://t.me/hermestele"
