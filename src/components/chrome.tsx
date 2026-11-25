@@ -7,7 +7,7 @@ import NotifBell from "./NotifBell";
 
 function ThemeToggle() {
   const { t } = useLang();
-  const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "dark");
+  const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "light");
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     try { localStorage.setItem("tiprouter-theme", theme); } catch { /* ignore */ }
@@ -50,7 +50,6 @@ export function SiteHeader() {
           <NavLink to="/gacha" onClick={() => setOpen(false)}>Bansos</NavLink>
           <NavLink to="/proxy" onClick={() => setOpen(false)}>{t("Proxy Gratis")}</NavLink>
           <NavLink to="/status" onClick={() => setOpen(false)}>{t("Status")}</NavLink>
-          <a href="/#how-it-works" onClick={anchor("#how-it-works")}>{t("Cara Pakai")}</a>
           <a href="/#faq" onClick={anchor("#faq")}>FAQ</a>
           <NavLink to="/profile" className={akunActive ? "active" : ""} onClick={() => setOpen(false)}>{t("Akun Saya")}</NavLink>
           <NavLink to="/buy" className="mnav-cta" onClick={() => setOpen(false)}>{t("Beli Sekarang")}</NavLink>
@@ -85,9 +84,6 @@ export function SiteFooter() {
         <code>https://tiprouter.my.id/v1</code>
         <Link to="/terms" style={{ textDecoration: "underline" }}>
           {t("Syarat & Ketentuan")}
-        </Link>
-        <Link to="/statistics" style={{ textDecoration: "underline" }}>
-          {t("Statistik")}
         </Link>
         <Link to="/status" style={{ textDecoration: "underline" }}>
           {t("Status")}

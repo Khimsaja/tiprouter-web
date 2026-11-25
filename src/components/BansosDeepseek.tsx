@@ -194,7 +194,7 @@ export default function BansosDeepseek() {
         {t("DeepSeek")} <em>{t("{budget} token, gratis.", { budget: budgetLabel })}</em>
       </h2>
       <p style={{ color: "var(--mut)", fontSize: 15, maxWidth: 640, margin: "0 0 18px" }}>
-        {t("Satu API key bersama untuk semua orang — khusus model deepseek-v-4.1-flash, tanpa batas RPM, budget season ini 2 miliar token (progress kumulatif semua season, tidak direset). Login dulu untuk lihat & salin key-nya. Siapa cepat, dia dapat.")}
+        {t("Satu API key bersama untuk semua orang — khusus model deepseek-v-4.1-flash, tanpa batas RPM, budget season ini {budget} token (progress kumulatif semua season, tidak direset). Login dulu untuk lihat & salin key-nya. Siapa cepat, dia dapat.", { budget: budgetLabel })}
       </p>
 
       <div className="card reveal" style={{ maxWidth: 720 }}>
