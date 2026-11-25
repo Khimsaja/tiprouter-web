@@ -344,7 +344,8 @@ html[data-theme="dark"] .ld{
   .ld .nav-right .theme-toggle{display:none}
   .ld .nav-links.open .mnav-auth{display:flex;flex-direction:column;border-top:1px solid var(--stroke);margin-top:4px;padding-top:4px}
   .ld .nav{position:relative}
-  .ld .burger{display:grid}
+  .ld .burger{display:grid;margin-left:auto}
+  .ld .nav-right{display:none}
   .ld .nav .btn-login{display:none}
   .ld .nav-right .lang-toggle{display:none}
   .ld .steps,.ld .price-grid,.ld .reco,.ld .bento{grid-template-columns:1fr}
