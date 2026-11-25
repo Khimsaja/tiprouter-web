@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Send, Ticket, X } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
-import { localeTag, tr, useLang } from "../lib/i18n";
-import { usePublicStats } from "../lib/usePublicStats";
+import { useLang } from "../lib/i18n";
 import { useActivePromos } from "../lib/useActivePromos";
 import BansosDeepseek from "../components/BansosDeepseek";
 import { promoDiscountLabel, promoScopeNames, usdIdr, toUsd } from "../lib/api";
@@ -13,7 +12,7 @@ const CSS = `
 .ld-refbar b{color:var(--txt)}
 .ld-refbar .tag{background:#fff;color:#000;font-weight:800;font-size:11px;padding:3px 9px;border-radius:99px;letter-spacing:.06em;flex-shrink:0;margin-top:1px}
 .ld-hero{padding:22px 0 4px}
-.ld-hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:start}
+.ld-hero-grid{display:grid;grid-template-columns:1fr;gap:36px;align-items:start}
 .ld-hero-grid>*{min-width:0}
 .ld-eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
 .ld-eyebrow b{color:var(--txt)}
@@ -39,33 +38,6 @@ const CSS = `
 @keyframes tgpop{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @media (max-width:560px){.tgmodal{padding:26px 20px}}
 .ld-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
-.ld-stats-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.ld-stats-head .r{font-size:12px;color:var(--faint)}
-.ld-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
-.ld-metric{border:1px solid var(--border);border-radius:12px;padding:12px 13px}
-.ld-metric .k{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
-.ld-metric .v{font-family:var(--font-mono);font-size:15px;font-weight:700;margin-top:5px;letter-spacing:-.02em;white-space:nowrap}
-.ld-metric .s{font-size:11px;color:var(--faint);margin-top:2px}
-.ld-topmodels{margin-top:16px;border-top:1px solid var(--border);padding-top:10px}
-.ld-topmodels .th,.ld-topmodels .tr{display:grid;grid-template-columns:1fr 52px 52px 72px;gap:8px;font-size:12.5px;padding:6px 2px;align-items:center}
-.ld-topmodels .th{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);padding-bottom:2px}
-.ld-topmodels .tr{border-top:1px solid var(--border);font-family:var(--font-mono)}
-.ld-topmodels .tr span:first-child{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ld-topmodels.cols3 .th,.ld-topmodels.cols3 .tr{grid-template-columns:1fr 64px 64px}
-.ld-topmodels .num{text-align:right;color:var(--mut)}
-.ld-live-list{list-style:none;margin-top:12px;border-top:1px solid var(--border);padding-top:6px;min-height:196px}
-.ld-live-row{display:flex;align-items:center;gap:9px;padding:7px 2px;font-size:13px;border-bottom:1px solid var(--border)}
-.ld-live-row:last-child{border-bottom:none}
-.ld-live-check{color:var(--green);display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--hover);flex:none}
-.ld-live-model{font-family:var(--font-mono);font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ld-live-meta{color:var(--faint);font-size:12px;margin-left:auto;white-space:nowrap}
-.ld-live-ok{color:var(--green);font-weight:700;font-size:12px;white-space:nowrap}
-.ld-live-age{color:var(--faint);font-size:11.5px;white-space:nowrap;min-width:64px;text-align:right}
-.ld-live-row.enter{animation:ldSlideIn .5s ease}
-@keyframes ldSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.ld-stats-foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--mut)}
-.ld-stats-foot .r{margin-left:auto;color:var(--faint);font-size:12px}
-.ld-stats-note{font-size:11.5px;color:var(--faint);margin-top:8px;line-height:1.5}
 .ld-avail{margin-top:22px;display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:22px;align-items:center}
 .ld-avail h2{font-size:25px;letter-spacing:-.02em;margin-top:8px;font-weight:800}
 .ld-avail .fact .k{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
@@ -149,9 +121,6 @@ const CSS = `
   .ld-avail{grid-template-columns:1fr 1fr}
 }
 @media (max-width:640px){
-  .ld-metrics{grid-template-columns:repeat(2,1fr)}
-  .ld-topmodels .th,.ld-topmodels .tr{grid-template-columns:1fr 44px 44px 62px;font-size:11.5px}
-  .ld-topmodels.cols3 .th,.ld-topmodels.cols3 .tr{grid-template-columns:1fr 56px 56px}
   .ld-price-grid,.ld-steps{grid-template-columns:1fr}
   .ld-avail{grid-template-columns:1fr}
   .ld-config-row{grid-template-columns:1fr;gap:8px}
@@ -159,11 +128,9 @@ const CSS = `
   .ld-compare .row{grid-template-columns:1fr;font-size:13.5px;gap:4px;padding:12px 0}
   .ld-compare .row.head{display:none}
   .ld-hero-stats{grid-template-columns:repeat(2,1fr);gap:14px 20px}
-  .ld-live-meta .tok{display:none}
 }
 @media (prefers-reduced-motion: reduce){
   .reveal{opacity:1;transform:none;transition:none}
-  .ld-live-row.enter{animation:none}
 }
 `;
 
@@ -180,13 +147,6 @@ const FALLBACK_MODELS = [
   "dots-3-note-preview", "qwen3.8-flash-uncen", "S5",
 ];
 
-const fmtID = (n: number) => n.toLocaleString(localeTag());
-const fmtCompact = (n: number) =>
-  n >= 1e6
-    ? (n / 1e6).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" jt")
-    : n >= 1e3
-      ? (n / 1e3).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + tr(" rb")
-      : String(n);
 
 function CopyBaseUrlBtn() {
   const { t } = useLang();
@@ -209,83 +169,6 @@ function CopyBaseUrlBtn() {
   );
 }
 
-function StatsCard() {
-  const { t } = useLang();
-  const { stats, error } = usePublicStats();
-  const loading = !stats && !error;
-
-  const top = (stats?.top_models ?? []).slice(0, 5);
-  const pct = (r: number) => (r * 100).toLocaleString(localeTag(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
-  const val = (v: string) => (loading ? "\u2026" : v);
-
-  return (
-    <div className="card reveal" style={{ marginTop: 0 }}>
-      <div className="ld-stats-head">
-        <span className="ld-label">
-          <span className="dot" />
-          {t("Statistik live")}
-        </span>
-        <span className="r">{t("24 jam terakhir")}</span>
-      </div>
-      <div className="ld-metrics">
-        <div className="ld-metric">
-          <p className="k">{t("Requests")}</p>
-          <p className="v">{stats ? fmtID(stats.requests) : val("")}</p>
-          <p className="s">{t("total request")}</p>
-        </div>
-        <div className="ld-metric">
-          <p className="k">{t("Input tokens")}</p>
-          <p className="v">{stats ? fmtCompact(stats.input_tokens) : val("")}</p>
-          <p className="s">{t("token prompt")}</p>
-        </div>
-        <div className="ld-metric">
-          <p className="k">{t("Output tokens")}</p>
-          <p className="v">{stats ? fmtCompact(stats.output_tokens) : val("")}</p>
-          <p className="s">{t("token completion")}</p>
-        </div>
-        <div className="ld-metric">
-          <p className="k">{t("Success rate")}</p>
-          <p className="v">{stats ? pct(stats.success_rate) : val("")}</p>
-          <p className="s">{stats ? t("{n} sukses", { n: fmtID(stats.ok) }) : t("tingkat sukses")}</p>
-        </div>
-      </div>
-      <div className="ld-topmodels cols3">
-        <div className="th">
-          <span>{t("Model terlaris")}</span>
-          <span style={{ textAlign: "right" }}>{t("Req")}</span>
-          <span style={{ textAlign: "right" }}>{t("Sukses")}</span>
-        </div>
-        <div>
-          {top.map((m) => (
-            <div className="tr" key={m.model}>
-              <span>{m.model}</span>
-              <span className="num">{fmtID(m.hits)}</span>
-              <span className="num">{fmtID(m.ok)}</span>
-            </div>
-          ))}
-          {loading && (
-            <div className="tr"><span>{t("Memuat\u2026")}</span><span className="num">\u2026</span><span className="num">\u2026</span></div>
-          )}
-        </div>
-      </div>
-      <div className="ld-stats-foot">
-        <span className="ld-label" style={{ color: "var(--green)" }}>
-          <span className="dot" />
-          Open for requests
-        </span>
-        <Link to="/statistics" className="r" style={{ textDecoration: "underline" }}>{t("Lihat statistik lengkap")}</Link>
-      </div>
-      {error && !stats && (
-        <p className="ld-stats-note">{t("Statistik lagi tidak bisa dimuat. Coba refresh halaman.")}</p>
-      )}
-      {!error && (
-        <p className="ld-stats-note">
-          {t("Data asli 24 jam terakhir dari jaringan TipRouter (agregat anonim — tanpa nama pengguna, isi chat, atau data key). Diperbarui tiap menit.")}
-        </p>
-      )}
-    </div>
-  );
-}
 
 const PRICES = [
   {
@@ -491,7 +374,6 @@ export default function Landing() {
               </div>
             </div>
 
-            <StatsCard />
           </div>
         </div>
 
