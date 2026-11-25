@@ -10,13 +10,12 @@ import {
   Gift,
   Menu,
   MessageSquare,
-  Moon,
   Plug,
   Send,
-  Sun,
   Zap,
 } from "lucide-react";
 import { LanguageToggle, useLang } from "../lib/i18n";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 /*
  * Landing TipRouter v5 — "Clean-Tech Enterprise" glass system.
@@ -383,61 +382,10 @@ const MARQUEE_NAMES = [
   "step-3.5-flash", "sensenova-6.8-flash-lite",
 ];
 
-const PICK_MODELS = [
-  { id: "deepseek-v4.1-flash-1017", desc: "Workhorse harian — cepat & murah buat coding" },
-  { id: "glm-5.3-flash-1017", desc: "Flash dari keluarga GLM — respons gesit" },
-  { id: "hungerg", desc: "Model event Qoder — reasoning + konteks besar" },
-];
 
-const PRICE_CARDS = [
-  { plan: "Trial", amount: "Rp3.000", dur: "Masa aktif 1 hari", bullets: ["Akses 33+ model", "Cocok buat tes dulu", "QRIS, aktif otomatis"], btn: "Pilih Trial", hot: false },
-  { plan: "Basic", amount: "Rp10.000", dur: "Masa aktif 3 hari", bullets: ["Akses 33+ model", "Bonus referral +1 hari*", "QRIS, aktif otomatis"], btn: "Pilih Basic", hot: false },
-  { plan: "Plus", amount: "Rp19.000", dur: "Masa aktif 7 hari", bullets: ["Akses 33+ model", "Bonus referral +1 hari*", "QRIS, aktif otomatis"], btn: "Pilih Plus", hot: false },
-  { plan: "Essential", amount: "Rp30.000", dur: "Masa aktif 14 hari", bullets: ["Akses 33+ model", "Bonus referral +3 hari*", "QRIS, aktif otomatis"], btn: "Pilih Essential", hot: false },
-  { plan: "Pro", amount: "Rp50.000", dur: "Masa aktif 30 hari", bullets: ["Akses 33+ model", "Bonus referral +4 hari*", "Per hari cuma ±Rp1.667", "QRIS, aktif otomatis"], btn: "Pilih Pro", hot: true },
-  { plan: "Custom", amount: "Hubungi", dur: "Durasi & kebutuhan khusus", bullets: ["Durasi di luar paket reguler", "Buat tim / pemakaian berat"], btn: "Minta Custom", hot: false },
-];
 
-const STEPS: { title: string; body: React.ReactNode }[] = [
-  {
-    title: "Masuk & pilih paket",
-    body: <>Login pakai akun Google atau GitHub, lalu pilih paket di halaman <code>/buy</code> — dari Trial 1 hari sampai Pro 30 hari.</>,
-  },
-  {
-    title: "Bayar pakai QRIS",
-    body: <>Scan QRIS (ada kode unik Rp1–500 buat pencocokan otomatis). Pembayaran terdeteksi server-side — key langsung di-mint walau kamu nutup halamannya.</>,
-  },
-  {
-    title: "Panggil API-nya",
-    body: <>Arahkan SDK OpenAI kamu ke <code>tiprouter.my.id/v1</code>, pakai key kamu, dan ganti-ganti model cukup dari parameter <code>model</code>.</>,
-  },
-];
 
-const RECO = [
-  { n: "01", title: "Harga naik ke atas", body: "Pembeli Indonesia mutusin dari harga dulu. Paket + tombol beli sekarang kelihatan dari hero (\"mulai Rp3.000\"), bukan disembunyiin di bawah fold." },
-  { n: "02", title: "Bukti dulu, klaim belakangan", body: "Hero langsung nunjukin bentuk dashboard + key + request yang jalan. Pengunjung ngerti produknya dalam 5 detik tanpa baca paragraf panjang." },
-  { n: "03", title: "Satu material, semua halaman", body: "Satu sistem kaca (blur, border, shadow yang sama) buat landing, dashboard, dan checkout — brand terasa utuh di semua halaman, bukan tempelan per halaman." },
-  { n: "04", title: "Kontras dijaga, gerak dikurangi", body: "Glass gampang jadi nggak kebaca. Di sini teks utama selalu di atas kaca yang cukup pekat, animasi cuma di latar, dan prefers-reduced-motion dihormati." },
-];
 
-const FAQS = [
-  {
-    q: "Gimana cara pakainya di kode saya?",
-    a: <>Cukup ganti base URL SDK OpenAI kamu ke <code>https://tiprouter.my.id/v1</code> dan isi API key dari dashboard. Ganti model tinggal ubah parameter <code>model</code> — nggak perlu key atau akun baru per provider.</>,
-  },
-  {
-    q: "Pembayarannya gimana?",
-    a: <>Pakai QRIS di halaman <code>/buy</code>. Tiap transaksi punya kode unik Rp1–500 buat pencocokan — bayar persis nominal yang tampil. Sistem ngecek pembayaran di sisi server, jadi key tetap terbit walau kamu meninggalkan halaman checkout.</>,
-  },
-  {
-    q: "Kalau satu provider lagi down gimana?",
-    a: <>Model populer di TipRouter dilayani banyak provider di balik satu nama model. Router nyoba provider berikutnya secara otomatis (strategi fallback), jadi request kamu nggak langsung gagal cuma karena satu provider bermasalah.</>,
-  },
-  {
-    q: "Bisa coba gratis dulu?",
-    a: <>Bisa lewat dua jalan: paket Trial Rp3.000 buat 1 hari, atau halaman <code>/gacha</code> buat kesempatan key gratis (1 klaim per IP, key gacha tidak bisa diperpanjang).</>,
-  },
-];
 
 const DEFAULT_MODEL = "deepseek-v4.1-flash-1017";
 
@@ -485,11 +433,62 @@ const QS_LIBRE = (
 
 export default function Landing() {
   const { t } = useLang();
+  // Data konten landing — di dalam komponen supaya t() aktif (bahasa ikut toggle).
+  const PICK_MODELS = [
+    { id: "deepseek-v4.1-flash-1017", desc: t("Workhorse harian — cepat & murah buat coding") },
+    { id: "glm-5.3-flash-1017", desc: t("Flash dari keluarga GLM — respons gesit") },
+    { id: "hungerg", desc: t("Model event Qoder — reasoning + konteks besar") },
+  ];
+  const PRICE_CARDS = [
+    { plan: "Trial", amount: "Rp3.000", dur: t("Masa aktif 1 hari"), bullets: [t("Akses 33+ model"), t("Cocok buat tes dulu"), t("QRIS, aktif otomatis")], btn: t("Pilih Trial"), hot: false },
+    { plan: "Basic", amount: "Rp10.000", dur: t("Masa aktif 3 hari"), bullets: [t("Akses 33+ model"), t("Bonus referral +1 hari*"), t("QRIS, aktif otomatis")], btn: t("Pilih Basic"), hot: false },
+    { plan: "Plus", amount: "Rp19.000", dur: t("Masa aktif 7 hari"), bullets: [t("Akses 33+ model"), t("Bonus referral +1 hari*"), t("QRIS, aktif otomatis")], btn: t("Pilih Plus"), hot: false },
+    { plan: "Essential", amount: "Rp30.000", dur: t("Masa aktif 14 hari"), bullets: [t("Akses 33+ model"), t("Bonus referral +3 hari*"), t("QRIS, aktif otomatis")], btn: t("Pilih Essential"), hot: false },
+    { plan: "Pro", amount: "Rp50.000", dur: t("Masa aktif 30 hari"), bullets: [t("Akses 33+ model"), t("Bonus referral +4 hari*"), t("Per hari cuma ±Rp1.667"), t("QRIS, aktif otomatis")], btn: t("Pilih Pro"), hot: true },
+    { plan: "Custom", amount: t("Hubungi"), dur: t("Durasi & kebutuhan khusus"), bullets: [t("Durasi di luar paket reguler"), t("Buat tim / pemakaian berat")], btn: t("Minta Custom"), hot: false },
+  ];
+  const STEPS: { title: string; body: React.ReactNode }[] = [
+    {
+      title: t("Masuk & pilih paket"),
+      body: <>{t("Login pakai akun Google atau GitHub, lalu pilih paket di halaman")}{" "}<code>/buy</code>{" — "}{t("dari Trial 1 hari sampai Pro 30 hari.")}</>,
+    },
+    {
+      title: t("Bayar pakai QRIS"),
+      body: t("Scan QRIS (ada kode unik Rp1–500 buat pencocokan otomatis). Pembayaran terdeteksi server-side — key langsung di-mint walau kamu nutup halamannya."),
+    },
+    {
+      title: t("Panggil API-nya"),
+      body: <>{t("Arahkan SDK OpenAI kamu ke")}{" "}<code>tiprouter.my.id/v1</code>{t(", pakai key kamu, dan ganti-ganti model cukup dari parameter")}{" "}<code>model</code>.</>,
+    },
+  ];
+  const RECO = [
+    { n: "01", title: t("Harga naik ke atas"), body: t("Pembeli Indonesia mutusin dari harga dulu. Paket + tombol beli sekarang kelihatan dari hero (\"mulai Rp3.000\"), bukan disembunyiin di bawah fold.") },
+    { n: "02", title: t("Bukti dulu, klaim belakangan"), body: t("Hero langsung nunjukin bentuk dashboard + key + request yang jalan. Pengunjung ngerti produknya dalam 5 detik tanpa baca paragraf panjang.") },
+    { n: "03", title: t("Satu material, semua halaman"), body: t("Satu sistem kaca (blur, border, shadow yang sama) buat landing, dashboard, dan checkout — brand terasa utuh di semua halaman, bukan tempelan per halaman.") },
+    { n: "04", title: t("Kontras dijaga, gerak dikurangi"), body: t("Glass gampang jadi nggak kebaca. Di sini teks utama selalu di atas kaca yang cukup pekat, animasi cuma di latar, dan prefers-reduced-motion dihormati.") },
+  ];
+  const FAQS = [
+    {
+      q: t("Gimana cara pakainya di kode saya?"),
+      a: <>{t("Cukup ganti base URL SDK OpenAI kamu ke")}{" "}<code>https://tiprouter.my.id/v1</code>{" "}{t("dan isi API key dari dashboard. Ganti model tinggal ubah parameter")}{" "}<code>model</code>{" — "}{t("nggak perlu key atau akun baru per provider.")}</>,
+    },
+    {
+      q: t("Pembayarannya gimana?"),
+      a: <>{t("Pakai QRIS di halaman")}{" "}<code>/buy</code>{". "}{t("Tiap transaksi punya kode unik Rp1–500 buat pencocokan — bayar persis nominal yang tampil. Sistem ngecek pembayaran di sisi server, jadi key tetap terbit walau kamu meninggalkan halaman checkout.")}</>,
+    },
+    {
+      q: t("Kalau satu provider lagi down gimana?"),
+      a: t("Model populer di TipRouter dilayani banyak provider di balik satu nama model. Router nyoba provider berikutnya secara otomatis (strategi fallback), jadi request kamu nggak langsung gagal cuma karena satu provider bermasalah."),
+    },
+    {
+      q: t("Bisa coba gratis dulu?"),
+      a: <>{t("Bisa lewat dua jalan: paket Trial Rp3.000 buat 1 hari, atau halaman")}{" "}<code>/gacha</code>{" "}{t("buat kesempatan key gratis (1 klaim per IP, key gacha tidak bisa diperpanjang).")}</>,
+    },
+  ];
   const rootRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [theme, setTheme] = useState<string>(() => document.documentElement.getAttribute("data-theme") || "light");
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -518,15 +517,9 @@ export default function Landing() {
       done();
       document.body.removeChild(ta);
     } catch {
-      showToast("Gagal menyalin — salin manual ya");
+      showToast(t("Gagal menyalin — salin manual ya"));
     }
   };
-
-  // Tema: mekanisme yang sama dengan situs (localStorage tiprouter-theme).
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("tiprouter-theme", theme); } catch { /* ignore */ }
-  }, [theme]);
 
   // Model IDs live dari template 'tiprouter new'; fallback bila API gagal.
   const [modelIds, setModelIds] = useState<string[]>(FALLBACK_MODELS);
@@ -581,10 +574,10 @@ export default function Landing() {
             <img className="brand-logo" src="/logo-icon.png" alt="" />
             <span>Tip<em>Router</em></span>
           </a>
-          <button className="icon-btn burger" type="button" aria-label="Buka menu" aria-expanded={navOpen} onClick={() => setNavOpen(!navOpen)}>
+          <button className="icon-btn burger" type="button" aria-label={t("Buka menu")} aria-expanded={navOpen} onClick={() => setNavOpen(!navOpen)}>
             <Menu size={19} />
           </button>
-          <nav className={"nav-links" + (navOpen ? " open" : "")} aria-label="Navigasi utama">
+          <nav className={"nav-links" + (navOpen ? " open" : "")} aria-label={t("Navigasi utama")}>
             <a href="#model" onClick={closeNav}>{t("Model")}</a>
             <a href="#harga" onClick={closeNav}>{t("Harga")}</a>
             <Link to="/gacha" onClick={closeNav}>{t("Bansos Gacha")}</Link>
@@ -594,9 +587,7 @@ export default function Landing() {
           </nav>
           <div className="nav-right">
             <LanguageToggle />
-            <button className="icon-btn" type="button" aria-label="Ganti mode terang / gelap" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+            <ThemeToggle />
             <Link className="btn btn-ghost btn-sm btn-login" to="/login">{t("Masuk")}</Link>
             <Link className="btn btn-ghost btn-sm btn-login" to="/dashboard">{t("Dashboard")}</Link>
             <Link className="btn btn-primary btn-sm" to="/buy">{t("Beli Sekarang")}</Link>
@@ -628,7 +619,7 @@ export default function Landing() {
                 <div className="base-row">
                   <span className="lbl">BASE URL</span>
                   <code>{QS_BASE_URL}</code>
-                  <button className="copy-btn" type="button" onClick={() => copyText(QS_BASE_URL, "URL tersalin")}><Copy size={14} />Salin URL</button>
+                  <button className="copy-btn" type="button" onClick={() => copyText(QS_BASE_URL, t("URL tersalin"))}><Copy size={14} />{t("Salin URL")}</button>
                 </div>
                 <div className="qs">
                   <div className="qs-bar">
@@ -637,8 +628,8 @@ export default function Landing() {
                     <span className="qs-badge">OpenAI-compatible</span>
                   </div>
                   <div className="qs-body">
-                    <h3>Satu endpoint, semua model.</h3>
-                    <div className="qs-tabs" role="tablist" aria-label="Pilih bahasa contoh kode">
+                    <h3>{t("Satu endpoint, semua model.")}</h3>
+                    <div className="qs-tabs" role="tablist" aria-label={t("Pilih bahasa contoh kode")}>
                       {QS_TABS.map((tab) => (
                         <button key={tab.id} className="qs-tab" type="button" role="tab" aria-selected={quickTab === tab.id} onClick={() => setQuickTab(tab.id)}>
                           {tab.label}
@@ -648,7 +639,7 @@ export default function Landing() {
                     <pre className="qs-code" aria-label="Contoh kode quickstart">
                       {quickTab === "node" ? QS_NODE : quickTab === "curl" ? QS_CURL : quickTab === "librechat" ? QS_LIBRE : QS_PYTHON}
                     </pre>
-                    <p className="qs-note">Ganti base URL dan API key. Format request tetap sama.</p>
+                    <p className="qs-note">{t("Ganti base URL dan API key. Format request tetap sama.")}</p>
                   </div>
                 </div>
               </div>
@@ -664,7 +655,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <section aria-label="Bansos Gacha">
+        <section aria-label={t("Bansos Gacha")}>
           <div className="wrap">
             <div className="glass-t3 beam-border gacha-banner">
               <div className="gacha-copy">
@@ -679,7 +670,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="bento" aria-label="Sorotan">
+        <section id="bento" aria-label={t("Sorotan")}>
           <div className="wrap">
             <div className="bento">
               <div className="glass-t2 bento-card bento-large">
@@ -729,11 +720,11 @@ export default function Landing() {
         <section id="model">
           <div className="wrap">
             <div className="sec-head">
-              <span className="kicker">Katalog Model</span>
-              <h2>{modelIds.length} model, satu endpoint</h2>
-              <p>Satu key buat semua model di bawah — klik nama modelnya buat lihat contoh kode.</p>
+              <span className="kicker">{t("Katalog Model")}</span>
+              <h2>{t("{count} model, satu endpoint", { count: modelIds.length })}</h2>
+              <p>{t("Satu key buat semua model di bawah — klik nama modelnya buat lihat contoh kode.")}</p>
             </div>
-            <div className="model-chips" role="group" aria-label="Daftar model">
+            <div className="model-chips" role="group" aria-label={t("Daftar model")}>
               {modelIds.map((id) => (
                 <button
                   key={id}
@@ -746,16 +737,16 @@ export default function Landing() {
                 </button>
               ))}
             </div>
-            <p className="model-count">{modelIds.length} model di template utama.</p>
+            <p className="model-count">{t("{count} model di template utama.", { count: modelIds.length })}</p>
           </div>
         </section>
 
         <section id="cara-kerja">
           <div className="wrap">
             <div className="sec-head">
-              <span className="kicker">Cara Kerja</span>
-              <h2>Dari daftar sampai manggil model: 3 langkah</h2>
-              <p>Nggak ada nunggu aktivasi manual. Alurnya otomatis dari pembayaran sampai key siap pakai.</p>
+              <span className="kicker">{t("Cara Kerja")}</span>
+              <h2>{t("Dari daftar sampai manggil model: 3 langkah")}</h2>
+              <p>{t("Nggak ada nunggu aktivasi manual. Alurnya otomatis dari pembayaran sampai key siap pakai.")}</p>
             </div>
             <div className="steps">
               {STEPS.map((s, i) => (
@@ -772,12 +763,12 @@ export default function Landing() {
         <section id="kode">
           <div className="wrap">
             <div className="sec-head">
-              <span className="kicker">Buat Developer</span>
-              <h2>Kompatibel OpenAI. Ganti base URL, selesai.</h2>
-              <p>Pilih model di kiri — contoh kodenya ngikutin. Kode yang udah jalan di OpenAI SDK tinggal pindah endpoint.</p>
+              <span className="kicker">{t("Buat Developer")}</span>
+              <h2>{t("Kompatibel OpenAI. Ganti base URL, selesai.")}</h2>
+              <p>{t("Pilih model di kiri — contoh kodenya ngikutin. Kode yang udah jalan di OpenAI SDK tinggal pindah endpoint.")}</p>
             </div>
             <div className="code-grid">
-              <div className="model-pick" role="group" aria-label="Pilih model untuk contoh kode">
+              <div className="model-pick" role="group" aria-label={t("Pilih model untuk contoh kode")}>
                 {PICK_MODELS.map((p) => (
                   <button key={p.id} className="pick-btn" type="button" data-model={p.id} aria-pressed={selectedModel === p.id} onClick={() => setSelectedModel(p.id)}>
                     <b>{p.id}</b>
@@ -789,9 +780,9 @@ export default function Landing() {
                 <div className="code-bar">
                   <span className="traffic" aria-hidden="true"><i /><i /><i /></span>
                   <span className="t">terminal — curl</span>
-                  <button className="copy-btn" type="button" onClick={() => copyText(curlPlain(selectedModel), "Contoh kode tersalin")}><Copy size={14} />Salin kode</button>
+                  <button className="copy-btn" type="button" onClick={() => copyText(curlPlain(selectedModel), t("Contoh kode tersalin"))}><Copy size={14} />{t("Salin kode")}</button>
                 </div>
-                <pre aria-label="Contoh kode curl">
+                <pre aria-label={t("Contoh kode curl")}>
                   <span className="c"># Ganti model-nya aja — key &amp; endpoint tetap sama</span>
                   {"\ncurl https://tiprouter.my.id/v1/chat/completions \\\n  -H "}
                   <span className="s">"Authorization: Bearer tip_KAMU"</span>
@@ -808,9 +799,9 @@ export default function Landing() {
         <section id="harga">
           <div className="wrap">
             <div className="sec-head">
-              <span className="kicker">Harga</span>
-              <h2>Harga flat per durasi. Bukan per token.</h2>
-              <p>Bayar sekali buat masa aktifnya — semua model di template utama kebuka. Ini harga produksi TipRouter saat ini, ditampilkan apa adanya.</p>
+              <span className="kicker">{t("Harga")}</span>
+              <h2>{t("Harga flat per durasi. Bukan per token.")}</h2>
+              <p>{t("Bayar sekali buat masa aktifnya — semua model di template utama kebuka. Ini harga produksi TipRouter saat ini, ditampilkan apa adanya.")}</p>
             </div>
             <div className="price-grid">
               {PRICE_CARDS.map((p) => (
@@ -828,22 +819,22 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-            <p className="price-note">*Bonus referral dua arah: kamu dan temanmu sama-sama dapat tambahan hari tiap pembelian (Trial tidak termasuk). Ada juga key gratis lewat halaman <Link to="/gacha" style={{ fontWeight: 700 }}>Gacha</Link>.</p>
+            <p className="price-note">{t("*Bonus referral dua arah: kamu dan temanmu sama-sama dapat tambahan hari tiap pembelian (Trial tidak termasuk). Ada juga key gratis lewat halaman")}{" "}<Link to="/gacha" style={{ fontWeight: 700 }}>Gacha</Link>.</p>
           </div>
         </section>
 
-        <section aria-label="Program referral">
+        <section aria-label={t("Program referral")}>
           <div className="wrap">
             <div className="glass referral">
               <div>
-                <span className="kicker">Referral</span>
-                <h3>Ajak teman, dua-duanya nambah hari</h3>
-                <p>Bagikan link <span style={{ fontFamily: "var(--mono)", fontSize: "13.5px" }}>tiprouter.my.id/?ref=KODE</span> kamu. Tiap teman yang beli, kalian berdua dapat bonus masa aktif — plus milestone kalau makin banyak yang ikut.</p>
+                <span className="kicker">{t("Referral")}</span>
+                <h3>{t("Ajak teman, dua-duanya nambah hari")}</h3>
+                <p>{t("Bagikan link")}{" "}<span style={{ fontFamily: "var(--mono)", fontSize: "13.5px" }}>tiprouter.my.id/?ref=KODE</span>{" "}{t("kamu. Tiap teman yang beli, kalian berdua dapat bonus masa aktif — plus milestone kalau makin banyak yang ikut.")}</p>
               </div>
               <div className="ref-table">
-                <div className="ref-row"><span>5 referral</span><b>+3 hari</b></div>
-                <div className="ref-row"><span>15 referral</span><b>+7 hari</b></div>
-                <div className="ref-row"><span>30 referral</span><b>+30 hari</b></div>
+                <div className="ref-row"><span>{t("5 referral")}</span><b>{t("+3 hari")}</b></div>
+                <div className="ref-row"><span>{t("15 referral")}</span><b>{t("+7 hari")}</b></div>
+                <div className="ref-row"><span>{t("30 referral")}</span><b>{t("+30 hari")}</b></div>
               </div>
             </div>
           </div>
@@ -852,9 +843,9 @@ export default function Landing() {
         <section id="rekomendasi">
           <div className="wrap">
             <div className="sec-head">
-              <span className="kicker">Kenapa Dirombak Begini</span>
-              <h2>Rekomendasi UX di balik konsep ini</h2>
-              <p>Bukan cuma ganti kulit — ini perubahan alur yang kami terapkan barengan sama visual glass-nya:</p>
+              <span className="kicker">{t("Kenapa Dirombak Begini")}</span>
+              <h2>{t("Rekomendasi UX di balik konsep ini")}</h2>
+              <p>{t("Bukan cuma ganti kulit — ini perubahan alur yang kami terapkan barengan sama visual glass-nya:")}</p>
             </div>
             <div className="reco">
               {RECO.map((r) => (
@@ -871,7 +862,7 @@ export default function Landing() {
           <div className="wrap">
             <div className="sec-head">
               <span className="kicker">FAQ</span>
-              <h2>Sering ditanyakan</h2>
+              <h2>{t("Sering ditanyakan")}</h2>
             </div>
             <div className="faq">
               {FAQS.map((f) => (
@@ -882,11 +873,11 @@ export default function Landing() {
               ))}
             </div>
             <div className="glass cta">
-              <h2>Siap nyobain gateway-nya?</h2>
-              <p>Mulai dari Trial Rp3.000 — bayar QRIS, key aktif otomatis, langsung bisa manggil 33+ model dari satu endpoint.</p>
+              <h2>{t("Siap nyobain gateway-nya?")}</h2>
+              <p>{t("Mulai dari Trial Rp3.000 — bayar QRIS, key aktif otomatis, langsung bisa manggil 33+ model dari satu endpoint.")}</p>
               <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                <Link className="btn btn-primary" to="/buy">Beli Key Sekarang</Link>
-                <Link className="btn btn-ghost" to="/dashboard/guide">Baca Panduan</Link>
+                <Link className="btn btn-primary" to="/buy">{t("Beli Key Sekarang")}</Link>
+                <Link className="btn btn-ghost" to="/dashboard/guide">{t("Baca Panduan")}</Link>
               </div>
             </div>
           </div>
@@ -900,12 +891,12 @@ export default function Landing() {
               <img className="brand-logo" src="/logo-icon.png" alt="" />
               <span>Tip<em>Router</em></span>
             </a>
-            <p className="fine">Gateway API multi-model dengan pembayaran QRIS. Satu key, 33+ model, routing fallback otomatis.</p>
+            <p className="fine">{t("Gateway API multi-model dengan pembayaran QRIS. Satu key, 33+ model, routing fallback otomatis.")}</p>
           </div>
-          <nav aria-label="Tautan kaki">
-            <Link to="/buy">Beli</Link>
+          <nav aria-label={t("Tautan kaki")}>
+            <Link to="/buy">{t("Beli")}</Link>
             <Link to="/gacha">Gacha</Link>
-            <Link to="/terms">Syarat</Link>
+            <Link to="/terms">{t("Syarat")}</Link>
             <Link to="/status" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span className="pulse-dot" aria-hidden="true" />
               {t("Status API")}
@@ -914,14 +905,14 @@ export default function Landing() {
               <Send size={13} />
               {t("Hubungi Admin")}
             </a>
-            <Link to="/dashboard/guide">Panduan</Link>
-            <Link to="/dashboard/history">Riwayat</Link>
-            <Link to="/notifications">Notifikasi</Link>
+            <Link to="/dashboard/guide">{t("Panduan")}</Link>
+            <Link to="/dashboard/history">{t("Riwayat")}</Link>
+            <Link to="/notifications">{t("Notifikasi")}</Link>
           </nav>
         </div>
       </footer>
 
-      <div className={"toast" + (toast ? " show" : "")} role="status" aria-live="polite">{toast ?? "Tersalin ke clipboard"}</div>
+      <div className={"toast" + (toast ? " show" : "")} role="status" aria-live="polite">{toast ?? t("Tersalin ke clipboard")}</div>
     </div>
   );
 }

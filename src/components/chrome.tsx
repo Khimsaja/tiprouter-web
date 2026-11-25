@@ -1,23 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useSession } from "../lib/session";
 import { LanguageToggle, useLang } from "../lib/i18n";
+import { ThemeToggle } from "./ThemeToggle";
 import NotifBell from "./NotifBell";
-
-function ThemeToggle() {
-  const { t } = useLang();
-  const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "light");
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("tiprouter-theme", theme); } catch { /* ignore */ }
-  }, [theme]);
-  return (
-    <button className="theme-toggle" aria-label={t("Ganti tema gelap / terang")} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-      {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
-    </button>
-  );
-}
 
 export function SiteHeader() {
   const { me } = useSession();
