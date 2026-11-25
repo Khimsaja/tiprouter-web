@@ -468,12 +468,6 @@ export default function Landing() {
       body: <>{t("Arahkan SDK OpenAI kamu ke")}{" "}<code>tiprouter.my.id/v1</code>{t(", pakai key kamu, dan ganti-ganti model cukup dari parameter")}{" "}<code>model</code>.</>,
     },
   ];
-  const RECO = [
-    { n: "01", title: t("Harga naik ke atas"), body: t("Pembeli Indonesia mutusin dari harga dulu. Paket + tombol beli sekarang kelihatan dari hero (\"mulai Rp3.000\"), bukan disembunyiin di bawah fold.") },
-    { n: "02", title: t("Bukti dulu, klaim belakangan"), body: t("Hero langsung nunjukin bentuk dashboard + key + request yang jalan. Pengunjung ngerti produknya dalam 5 detik tanpa baca paragraf panjang.") },
-    { n: "03", title: t("Satu material, semua halaman"), body: t("Satu sistem kaca (blur, border, shadow yang sama) buat landing, dashboard, dan checkout — brand terasa utuh di semua halaman, bukan tempelan per halaman.") },
-    { n: "04", title: t("Kontras dijaga, gerak dikurangi"), body: t("Glass gampang jadi nggak kebaca. Di sini teks utama selalu di atas kaca yang cukup pekat, animasi cuma di latar, dan prefers-reduced-motion dihormati.") },
-  ];
   const FAQS = [
     {
       q: t("Gimana cara pakainya di kode saya?"),
@@ -848,24 +842,6 @@ export default function Landing() {
                 <div className="ref-row"><span>{t("15 referral")}</span><b>{t("+7 hari")}</b></div>
                 <div className="ref-row"><span>{t("30 referral")}</span><b>{t("+30 hari")}</b></div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="rekomendasi">
-          <div className="wrap">
-            <div className="sec-head">
-              <span className="kicker">{t("Kenapa Dirombak Begini")}</span>
-              <h2>{t("Rekomendasi UX di balik konsep ini")}</h2>
-              <p>{t("Bukan cuma ganti kulit — ini perubahan alur yang kami terapkan barengan sama visual glass-nya:")}</p>
-            </div>
-            <div className="reco">
-              {RECO.map((r) => (
-                <div className="glass reco-item" key={r.n}>
-                  <h3><span className="n">{r.n}</span>{r.title}</h3>
-                  <p>{r.body}</p>
-                </div>
-              ))}
             </div>
           </div>
         </section>
