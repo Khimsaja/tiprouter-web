@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Check, Copy, Eye, EyeOff, KeyRound, Link2, Unlink } from "lucide-react";
 import { PageHead } from "../components/DashLayout";
@@ -347,64 +347,49 @@ export default function Keys() {
         <p style={{ marginTop: 0 }}>
           {t("{n} key", { n: keys.length })}: <b>{t("{n} hasil beli", { n: nBeli })}</b> · <b>{t("{n} hasil gacha bansos", { n: nGacha })}</b>
         </p>
-        {keys.map((k, i) => (
-          <Fragment key={k.id}>
-            {i > 0 ? <div style={{ borderTop: "1px solid var(--border)", margin: "12px 0" }} /> : null}
-            <div style={{ padding: "6px 0 2px" }}>
-              <div className="kv">
-                <span className="k">{t("Label")}</span>
-                <span className="v">{k.label}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Sumber")}</span>
-                <span className="v">
-                  <SourceChip k={k} />
-                </span>
-              </div>
-              {k.revealable ? (
-                <KeySecretRow k={k} />
-              ) : (
-                <div className="kv">
-                  <span className="k">{t("Prefix")}</span>
-                  <span className="v mono">{k.prefix ? k.prefix + "…" + (k.hint ?? "") + "········" : "-"}</span>
-                </div>
-              )}
-              <div className="kv">
-                <span className="k">{t("Status")}</span>
-                <span className="v">
-                  <StatusChip status={k.status} />
-                </span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Dibuat")}</span>
-                <span className="v">{k.createdAt ? fmtDate(k.createdAt) : "-"}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Masa berlaku")}</span>
-                <span className="v">{expiryText(k)}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Token terpakai")}</span>
-                <span className="v">{fmtNum(k.tokensConsumed)}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Limit request")}</span>
-                <span className="v">{k.requestsPerMinute ? t("{n}/menit", { n: k.requestsPerMinute }) : t("150/menit (fair use)")}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Request barengan")}</span>
-                <span className="v">{k.maxConcurrentRequests ? t("maks {n}", { n: k.maxConcurrentRequests }) : "-"}</span>
-              </div>
-              <div className="kv">
-                <span className="k">{t("Model tersedia")}</span>
-                <span className="v">{t("{n} model", { n: k.modelCount || 0 })}</span>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <UnlinkKeyButton k={k} onDone={() => setRefresh((r) => r + 1)} />
-              </div>
-            </div>
-          </Fragment>
-        ))}
+        <div className="ptable-wrap">
+          <table className="ptable">
+            <thead>
+              <tr>
+                <th>{t("Label")}</th>
+                <th>API Key</th>
+                <th>{t("Status")}</th>
+                <th>{t("Masa berlaku")}</th>
+                <th style={{ textAlign: "right" }}>{t("Token terpakai")}</th>
+                <th>{t("Limit request")}</th>
+                <th>{t("Model tersedia")}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {keys.map((k) => (
+                <tr key={k.id}>
+                  <td>
+                    <p className="who">{k.label}</p>
+                    <p className="meta"><SourceChip k={k} /> · {k.createdAt ? fmtDate(k.createdAt) : "-"}</p>
+                  </td>
+                  <td>
+                    {k.revealable ? (
+                      <KeySecretRow k={k} />
+                    ) : (
+                      <span className="mono" style={{ fontSize: 12.5 }}>{k.prefix ? k.prefix + "…" + (k.hint ?? "") + "········" : "-"}</span>
+                    )}
+                  </td>
+                  <td><StatusChip status={k.status} /></td>
+                  <td style={{ whiteSpace: "normal", minWidth: 150 }}>{expiryText(k)}</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--font-mono)" }}>{fmtNum(k.tokensConsumed)}</td>
+                  <td>
+                    {k.requestsPerMinute ? t("{n}/menit", { n: k.requestsPerMinute }) : t("150/menit (fair use)")}
+                    <br />
+                    <span style={{ color: "var(--mut)", fontSize: 12 }}>{k.maxConcurrentRequests ? t("maks {n} barengan", { n: k.maxConcurrentRequests }) : "-"}</span>
+                  </td>
+                  <td>{t("{n} model", { n: k.modelCount || 0 })}</td>
+                  <td><UnlinkKeyButton k={k} onDone={() => setRefresh((r) => r + 1)} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="btns">
           <Link className="btn primary" to="/buy">
             {t("Beli API Key Lagi")}

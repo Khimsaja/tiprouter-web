@@ -1,175 +1,165 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  Bot,
+  Check,
+  ChevronDown,
+  Code2,
+  Copy,
+  Gift,
+  Menu,
+  MessageSquare,
+  Moon,
+  Plug,
+  Send,
+  Sun,
+  Waypoints,
+  Zap,
+} from "lucide-react";
+import { LanguageToggle, useLang } from "../lib/i18n";
 
 /*
- * Landing TipRouter v4 — Glass Lab dicabut, katalog model jadi chip kompak
- * (siap jualan). Basis tetap file export preview v3; token kaca (.ld) tidak
- * berubah — blur 2px / transparansi 30% / saturasi 100% kini tetap, tidak
- * bisa diubah-ubah lagi.
+ * Landing TipRouter v5 — "Clean-Tech Enterprise" glass system.
+ * Token kaca (.ld) mengikuti sistem global di src/index.css (canvas
+ * #F8FAFC, aksen sky #0EA5E9 → #0284C7, tier T1 .75 / T2 .65 / T3 .85).
+ * Wallpaper/blob/grid-overlay lokal DICABUT — canvas dot-grid + ambient
+ * orb global dari index.css yang tampil. Hanya visual/CSS/layout yang
+ * berubah; semua handler, state, fetch, dan logika pembayaran tetap.
  */
 const CSS = `
 .ld{
-  --blur:2px;--glass-alpha:.30;--sat:100%;--radius:22px;
+  --radius:16px;
   --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --bg:#dcebfb;--bg-2:#e6f3f7;--bg-3:#e9e6fd;--ink:#0a2547;--ink-2:#3d5c7d;--ink-3:#6e8cae;
-  --glass:rgba(255,255,255,var(--glass-alpha));
-  --glass-strong:rgba(255,255,255,.8);
-  --glass-soft:rgba(255,255,255,.4);
-  --stroke:rgba(255,255,255,.8);
-  --stroke-2:rgba(10,37,71,.1);
-  --shadow:0 24px 60px -24px rgba(13,64,120,.3),0 4px 16px -6px rgba(13,64,120,.13);
-  --accent:#0b74ce;--accent-ink:#ffffff;--accent-soft:rgba(11,116,206,.12);
-  --amber:#b97a0e;--amber-soft:rgba(217,148,26,.16);
-  --code-bg:rgba(7,29,54,.95);--code-ink:#dcecff;
-  --blob-a:#4f9ff0;--blob-b:#22b3a5;--blob-c:#3b82e0;--blob-d:#b7a8f5;--blob-e:#8f7bf2;
-  --nav-bg:rgba(255,255,255,.55);--chip:rgba(255,255,255,.5);--input:rgba(255,255,255,.6);
+  --ink:#0F172A;--ink-2:#475569;--ink-3:#64748B;
+  --glass:rgba(255,255,255,.65);
+  --glass-strong:rgba(255,255,255,.85);
+  --glass-soft:rgba(255,255,255,.5);
+  --stroke:rgba(255,255,255,.9);
+  --stroke-2:rgba(15,23,42,.08);
+  --shadow:0 8px 32px rgba(14,165,233,.08);
+  --shadow-lg:0 12px 40px -8px rgba(14,165,233,.18);
+  --accent:#0284C7;--accent-2:#0EA5E9;--accent-ink:#ffffff;--accent-soft:rgba(14,165,233,.12);
+  --green:#047857;
+  --amber:#b45309;--amber-soft:rgba(217,119,6,.12);
+  --code-bg:rgba(15,23,42,.9);--code-ink:#f1f5f9;
+  --nav-bg:rgba(255,255,255,.75);--chip:rgba(255,255,255,.6);--input:rgba(255,255,255,.6);
   color-scheme:light;
-  font-family:var(--font);color:var(--ink);background:var(--bg);padding-top:14px;
+  font-family:var(--font);color:var(--ink);background:transparent;padding-top:14px;
   -webkit-font-smoothing:antialiased;line-height:1.55;
 }
 html[data-theme="dark"] .ld{
-  --bg:#04101f;--bg-2:#062a33;--bg-3:#0d1338;--ink:#edf5ff;--ink-2:#a9c3de;--ink-3:#6f8cae;
-  --glass:rgba(13,32,56,calc(var(--glass-alpha)*.72));
-  --glass-strong:rgba(16,40,68,.85);
-  --glass-soft:rgba(14,34,58,.42);
-  --stroke:rgba(255,255,255,.14);
-  --stroke-2:rgba(255,255,255,.08);
-  --shadow:0 24px 60px -24px rgba(0,0,0,.65),0 4px 16px -6px rgba(0,0,0,.4);
-  --accent:#56b0f7;--accent-ink:#04182e;--accent-soft:rgba(86,176,247,.15);
+  --ink:#F1F5F9;--ink-2:#94A3B8;--ink-3:#7D8AA0;
+  --glass:rgba(15,23,42,.6);
+  --glass-strong:rgba(15,23,42,.82);
+  --glass-soft:rgba(15,23,42,.45);
+  --stroke:rgba(148,163,184,.18);
+  --stroke-2:rgba(148,163,184,.14);
+  --shadow:0 8px 32px rgba(2,6,23,.5);
+  --shadow-lg:0 12px 40px -8px rgba(2,6,23,.6);
+  --accent:#38BDF8;--accent-2:#0EA5E9;--accent-ink:#ffffff;--accent-soft:rgba(56,189,248,.14);
+  --green:#34D399;
   --amber:#f5bc52;--amber-soft:rgba(245,188,82,.14);
-  --code-bg:rgba(3,12,24,.94);--code-ink:#dcecff;
-  --blob-a:#1468c4;--blob-b:#0d8a7a;--blob-c:#1a6fc0;--blob-d:#2a1a6b;--blob-e:#4a2a8a;
-  --nav-bg:rgba(8,24,44,.55);--chip:rgba(255,255,255,.07);--input:rgba(255,255,255,.06);
+  --nav-bg:rgba(15,23,42,.72);--chip:rgba(15,23,42,.5);--input:rgba(15,23,42,.5);
   color-scheme:dark;
 }
-/* Matikan aurora body::before situs saat landing tampil — preview punya
-   living background-nya sendiri. */
-body:has(.ld)::before{display:none}
-.ld ::selection{background:var(--accent);color:var(--accent-ink)}
+.ld ::selection{background:var(--accent);color:#fff}
 .ld a{color:inherit}
 .ld button{font-family:var(--font);cursor:pointer}
 .ld button,.ld summary,.ld input{min-height:2.25rem}
 .ld :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 
-/* ===== Living background ===== */
-.ld .wallpaper{position:fixed;inset:0;z-index:-3;background:linear-gradient(155deg,var(--bg) 0%,var(--bg-2) 42%,var(--bg-3) 72%,var(--bg) 100%)}
-.ld .blob{position:fixed;border-radius:50%;filter:blur(70px);z-index:-2;opacity:.75;pointer-events:none}
-.ld .blob-a{width:56vw;height:56vw;min-width:340px;min-height:340px;background:var(--blob-a);top:-16vw;right:-10vw}
-.ld .blob-b{width:38vw;height:38vw;min-width:260px;min-height:260px;background:var(--blob-b);top:34vh;left:-14vw;opacity:.55}
-.ld .blob-c{width:44vw;height:44vw;min-width:300px;min-height:300px;background:var(--blob-c);bottom:-18vw;right:6vw;opacity:.55}
-.ld .blob-d{width:26vw;height:26vw;min-width:200px;min-height:200px;background:var(--blob-d);top:120vh;left:22vw;opacity:.45}
-.ld .blob-e{width:32vw;height:32vw;min-width:240px;min-height:240px;background:var(--blob-e);top:6vh;left:36vw;opacity:.4}
-@keyframes drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(-4vw,5vh) scale(1.08)}}
-@keyframes drift2{from{transform:translate(0,0)}to{transform:translate(5vw,-4vh)}}
-@keyframes hover1{0%,100%{margin-top:0}50%{margin-top:-8px}}
 @keyframes scrollx{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion: no-preference){
-  .ld .blob-a{animation:drift1 26s ease-in-out infinite alternate}
-  .ld .blob-b{animation:drift2 32s ease-in-out infinite alternate}
-  .ld .blob-c{animation:drift1 38s ease-in-out infinite alternate-reverse}
-  .ld .blob-e{animation:drift2 30s ease-in-out infinite alternate-reverse}
-  .ld .card-float-a{animation:hover1 7s ease-in-out infinite}
   .ld .marquee{animation:scrollx 36s linear infinite}
 }
-.ld .grid-overlay{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
-  background-image:linear-gradient(var(--stroke-2) 1px,transparent 1px),linear-gradient(90deg,var(--stroke-2) 1px,transparent 1px);
-  background-size:56px 56px;
-  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 30%,transparent 75%);
-          mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 30%,transparent 75%);}
 
-/* ===== Glass primitives ===== */
+/* ===== Glass primitives (tier global) ===== */
 .ld .glass{
   background:var(--glass);
-  -webkit-backdrop-filter:blur(var(--blur)) saturate(var(--sat));
-          backdrop-filter:blur(var(--blur)) saturate(var(--sat));
+  -webkit-backdrop-filter:blur(20px) saturate(1.1);
+          backdrop-filter:blur(20px) saturate(1.1);
   border:1px solid var(--stroke);
   box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.35);
   border-radius:var(--radius);
 }
 .ld .glass-soft{
   background:var(--glass-soft);
-  -webkit-backdrop-filter:blur(calc(var(--blur)*.7)) saturate(var(--sat));
-          backdrop-filter:blur(calc(var(--blur)*.7)) saturate(var(--sat));
+  -webkit-backdrop-filter:blur(12px) saturate(1.1);
+          backdrop-filter:blur(12px) saturate(1.1);
   border:1px solid var(--stroke-2);
   border-radius:var(--radius);
 }
 .ld .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
 
-/* ===== Nav ===== */
-.ld .nav-shell{position:sticky;top:12px;z-index:50;padding:0 16px;margin-top:0}
+/* ===== Nav (sejajar chrome global: pill T1, top 16px) ===== */
+.ld .nav-shell{position:sticky;top:16px;z-index:50;padding:0 16px;margin-top:0}
 .ld .nav{
-  max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;
-  padding:10px 12px 10px 18px;border-radius:999px;
+  max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;
+  padding:8px 10px 8px 12px;border-radius:16px;
   background:var(--nav-bg);
-  -webkit-backdrop-filter:blur(var(--blur)) saturate(var(--sat));
-          backdrop-filter:blur(var(--blur)) saturate(var(--sat));
+  -webkit-backdrop-filter:blur(12px) saturate(1.1);
+          backdrop-filter:blur(12px) saturate(1.1);
   border:1px solid var(--stroke);
-  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.3);
+  box-shadow:0 4px 24px rgba(14,165,233,.06), inset 0 1px 0 rgba(255,255,255,.35);
 }
-.ld .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:17px;letter-spacing:-.02em;white-space:nowrap}
-.ld .brand-mark{width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.ld .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:-.02em;white-space:nowrap;color:var(--ink)}
+.ld .brand-mark{width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.4), inset 0 1px 0 rgba(255,255,255,.35)}
 .ld .brand em{font-style:normal;color:var(--accent)}
-.ld .nav-links{display:flex;gap:2px;margin-left:8px}
-.ld .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 13px;border-radius:999px;min-height:36px;display:inline-flex;align-items:center}
+.ld .nav-links{display:flex;gap:2px;margin-left:auto}
+.ld .nav-lang{display:none}
+.ld .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--ink-2);padding:7px 11px;border-radius:10px;min-height:36px;display:inline-flex;align-items:center;white-space:nowrap}
 .ld .nav-links a:hover{color:var(--ink);background:var(--chip)}
 .ld .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.ld .icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--stroke-2);background:var(--chip);color:var(--ink);display:grid;place-items:center;flex:none}
+.ld .nav-links + .nav-right{margin-left:0}
+.ld .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--stroke-2);background:var(--chip);color:var(--ink);display:grid;place-items:center;flex:none}
 .ld .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;border:none;
-  font-weight:700;font-size:14.5px;padding:11px 20px;border-radius:999px;min-height:44px;transition:transform .15s ease;
+  font-weight:700;font-size:14.5px;padding:11px 20px;border-radius:999px;min-height:44px;transition:transform .15s ease, box-shadow .15s ease;
   white-space:nowrap;
 }
 .ld .btn:active{transform:scale(.97)}
-.ld .btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 12px 28px -10px var(--accent), inset 0 1px 0 rgba(255,255,255,.35)}
-.ld .btn-ghost{background:var(--chip);color:var(--ink);border:1px solid var(--stroke)}
-.ld .btn-sm{padding:9px 16px;min-height:40px;font-size:13.5px}
+.ld .btn-primary{background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 14px rgba(14,165,233,.35), inset 0 1px 0 rgba(255,255,255,.35)}
+.ld .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(14,165,233,.45)}
+.ld .btn-ghost{background:var(--chip);color:var(--accent);border:1px solid rgba(125,211,252,.6)}
+.ld .btn-sm{padding:8px 14px;min-height:36px;font-size:13px}
 .ld .burger{display:none}
 
 /* ===== Hero ===== */
-.ld .hero{padding:64px 0 30px}
+.ld .hero{padding-top:64px;padding-bottom:30px}
 .ld .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
 .ld .hero-grid>*{min-width:0}
 .ld .pill{
   display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.04em;
   padding:7px 14px;border-radius:999px;background:var(--chip);border:1px solid var(--stroke);color:var(--ink-2);
 }
+.ld .pill .pulse-dot{width:8px;height:8px;border-radius:50%;background:#10b981;flex:none;animation:pulse-dot 2s ease-in-out infinite}
 .ld h1{font-size:clamp(38px,5.4vw,62px);line-height:1.04;letter-spacing:-.035em;font-weight:800;margin:20px 0 18px}
-.ld h1 .grad{color:var(--accent)}
+.ld h1 .grad{background:linear-gradient(90deg,#0EA5E9,#0284C7);-webkit-background-clip:text;background-clip:text;color:transparent}
 .ld .hero-sub{font-size:clamp(16px,2vw,18.5px);color:var(--ink-2);max-width:34em;margin:0 0 28px}
+.ld .hero-sub code{font-family:var(--mono);font-size:.9em;background:var(--accent-soft);padding:2px 7px;border-radius:6px;border:1px solid var(--stroke-2);color:var(--ink)}
 .ld .hero-cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .ld .hero-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 24px;margin-top:32px;max-width:460px}
 .ld .hero-meta .m b{display:block;font-size:21px;letter-spacing:-.02em}
 .ld .hero-meta .m span{display:block;font-size:12.5px;color:var(--ink-3);font-weight:600;margin-top:2px}
 
-/* hero visual stack */
-.ld .stack{position:relative;min-height:420px}
-.ld .card-main{position:relative;z-index:3;padding:22px}
-.ld .card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+/* hero visual: kartu kaca + terminal gelap */
+.ld .stack{position:relative}
+.ld .hero-card{padding:20px}
+.ld .base-row{display:flex;align-items:center;gap:10px;background:var(--input);border:1px solid var(--stroke-2);border-radius:14px;padding:10px 10px 10px 16px}
+.ld .base-row .lbl{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--ink-3);flex:none}
+.ld .base-row code{font-family:var(--mono);font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld .copy-btn{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--stroke-2);background:var(--glass-strong);color:var(--ink);font-size:12.5px;font-weight:700;border-radius:10px;padding:8px 13px;min-height:36px}
 .ld .traffic{display:flex;gap:6px}
 .ld .traffic i{width:11px;height:11px;border-radius:50%;display:block}
 .ld .traffic i:nth-child(1){background:#f0756a}.ld .traffic i:nth-child(2){background:#f2b04e}.ld .traffic i:nth-child(3){background:#3ecf8e}
-.ld .card-head .t{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
-.ld .key-row{display:flex;align-items:center;gap:10px;background:var(--input);border:1px solid var(--stroke-2);border-radius:14px;padding:10px 10px 10px 16px}
-.ld .key-row code{font-family:var(--mono);font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ld .copy-btn{flex:none;border:1px solid var(--stroke-2);background:var(--glass-strong);color:var(--ink);font-size:12.5px;font-weight:700;border-radius:10px;padding:8px 13px;min-height:36px}
-.ld .req-list{display:grid;gap:10px;margin-top:16px}
-.ld .req{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--glass-soft);border:1px solid var(--stroke-2)}
-.ld .req .mdl{font-weight:700;font-size:14px}
-.ld .req .sub{font-size:12px;color:var(--ink-3);font-family:var(--mono)}
-.ld .req .st{margin-left:auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
-.ld .req .st.warn{background:var(--amber-soft);color:var(--amber)}
-.ld .card-float{position:absolute;z-index:4;padding:16px 18px;width:250px}
-.ld .card-float-a{right:-8px;top:-26px;transform:rotate(2deg)}
-.ld .card-float .lab{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
-.ld .card-float .big{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0}
-.ld .card-float .note{font-size:12.5px;color:var(--ink-2)}
 
 /* ===== Quickstart (hero terminal) — kartu gelap di kedua tema ===== */
 .ld .qs{
-  position:relative;z-index:3;
+  position:relative;z-index:3;margin-top:14px;
   background:var(--code-bg);color:var(--code-ink);
-  border:1px solid var(--stroke-2);border-radius:var(--radius);
+  border:1px solid rgba(100,116,139,.45);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden;text-align:left;
 }
 .ld .qs-bar{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
@@ -177,9 +167,6 @@ body:has(.ld)::before{display:none}
 .ld .qs-badge{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:999px;background:rgba(124,199,245,.14);color:#8ec9f8;border:1px solid rgba(124,199,245,.25);white-space:nowrap}
 .ld .qs-body{padding:18px 18px 16px}
 .ld .qs-body h3{margin:0 0 14px;font-size:20px;font-weight:800;letter-spacing:-.02em;color:#f2f8ff}
-.ld .qs-base{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:9px 9px 9px 13px;margin-bottom:12px}
-.ld .qs-base .lbl{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#7d9bb8;flex:none}
-.ld .qs-base code{font-family:var(--mono);font-size:12.5px;color:#dcecff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ld .qs .copy-btn{flex:none;background:rgba(255,255,255,.1);color:#eafff8;border-color:rgba(255,255,255,.15)}
 .ld .qs-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .ld .qs-tab{font-family:var(--mono);font-size:12.5px;font-weight:700;color:#93b8d8;background:transparent;border:1px solid transparent;border-radius:10px;padding:7px 12px;min-height:34px}
@@ -192,8 +179,9 @@ body:has(.ld)::before{display:none}
 }
 .ld .qs-note{margin:0;font-size:12.5px;color:#93b8d8}
 @media (max-width:680px){
-  .ld .qs-base code{flex:1 1 100%;order:3}
-  .ld .qs-base .copy-btn{margin-left:auto}
+  .ld .base-row code{flex:1 1 100%;order:3}
+  .ld .base-row{flex-wrap:wrap}
+  .ld .base-row .copy-btn{margin-left:auto}
   .ld .qs pre{font-size:11.5px;padding:13px 14px}
 }
 
@@ -211,11 +199,38 @@ body:has(.ld)::before{display:none}
 .ld .sec-head p{color:var(--ink-2);margin:0;font-size:16px}
 .ld .kicker{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:block}
 
+/* ===== Bansos Gacha lead-magnet banner (Tier-3 + beam-border) ===== */
+.ld .gacha-banner{padding:28px 30px;display:flex;gap:22px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ld .gacha-copy{display:flex;gap:16px;align-items:flex-start;min-width:280px;flex:1}
+.ld .gacha-icon{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 14px rgba(14,165,233,.35)}
+.ld .gacha-banner h3{margin:0 0 6px;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.ld .gacha-banner p{margin:0;color:var(--ink-2);font-size:14.5px;max-width:52em}
+.ld .gacha-banner .btn{flex:none}
+
+/* ===== Bento grid ===== */
+.ld .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ld .bento-card{padding:24px}
+.ld .bento-large{grid-column:span 2}
+.ld .bento-card h3{margin:0 0 8px;font-size:17px;letter-spacing:-.01em}
+.ld .bento-sub{margin:0 0 16px;font-size:14px;color:var(--ink-2)}
+.ld .bento-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ld .bento-head h3{margin-bottom:0}
+.ld .bento-badges{display:flex;gap:8px;flex-wrap:wrap}
+.ld .bento-head + .bento-sub{margin-top:10px}
+.ld .bento-more{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13.5px;font-weight:700;color:var(--accent);text-decoration:none}
+.ld .bento-more:hover{text-decoration:underline}
+.ld .eco-badges{display:flex;flex-wrap:wrap;gap:8px}
+.ld .eco-badge{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--ink);background:var(--chip);border:1px solid var(--stroke-2);border-radius:999px;padding:9px 14px}
+.ld .eco-badge svg{color:var(--accent)}
+.ld .bento-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);margin-bottom:14px}
+
 /* Models — daftar kompak (chip kecil, siap jualan) */
 .ld .model-chips{display:flex;flex-wrap:wrap;gap:8px}
-.ld .model-chip{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--chip);border:1px solid var(--stroke-2);border-radius:999px;padding:6px 12px;min-height:32px;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease}
+.ld .model-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--chip);border:1px solid var(--stroke-2);border-radius:999px;padding:6px 12px;min-height:32px;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease}
 .ld .model-chip:hover{color:var(--ink);border-color:var(--accent)}
-.ld .model-chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.ld .model-chip[aria-pressed="true"]{background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;border-color:transparent}
+.ld .model-chip .pulse-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex:none}
+.ld .model-chip[aria-pressed="true"] .pulse-dot{background:#fff}
 .ld .model-count{font-size:13px;color:var(--ink-3);font-weight:600;margin-top:14px}
 
 /* Steps */
@@ -243,8 +258,13 @@ body:has(.ld)::before{display:none}
 /* Pricing */
 .ld .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ld .price-card{padding:26px;display:flex;flex-direction:column;position:relative}
-.ld .price-card.hot{border-color:var(--accent);box-shadow:var(--shadow),0 0 0 1px var(--accent), inset 0 1px 0 rgba(255,255,255,.35)}
-.ld .hot-badge{position:absolute;top:-13px;left:24px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
+.ld .price-card.hot{
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(24px) saturate(1.1);backdrop-filter:blur(24px) saturate(1.1);
+  border:1px solid rgba(125,211,252,.9);
+  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.ld .hot-badge{position:absolute;top:-13px;left:24px;background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:999px;box-shadow:0 4px 14px rgba(14,165,233,.35)}
 .ld .price-card .plan{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .ld .price-card .amount{font-size:36px;font-weight:800;letter-spacing:-.03em;margin:8px 0 2px}
 .ld .price-card .amount small{font-size:14px;font-weight:600;color:var(--ink-3);letter-spacing:0}
@@ -293,9 +313,9 @@ body:has(.ld)::before{display:none}
 
 .ld .toast{
   position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);z-index:80;
-  background:var(--glass-strong);color:var(--ink);border:1px solid var(--stroke);
+  background:var(--glass-strong);color:var(--ink);border:1px solid rgba(125,211,252,.6);
   -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-  padding:12px 20px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow);
+  padding:12px 20px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow-lg);
   transition:transform .3s ease;pointer-events:none;
 }
 .ld .toast.show{transform:translate(-50%,0)}
@@ -304,28 +324,26 @@ body:has(.ld)::before{display:none}
 @media (max-width:960px){
   .ld .hero-grid,.ld .code-grid,.ld .referral{grid-template-columns:1fr}
   .ld .steps,.ld .price-grid{grid-template-columns:repeat(2,1fr)}
-  .ld .stack{min-height:0;margin-top:8px}
-  .ld .card-float-a{top:-18px;right:0}
-  .ld .card-main{margin:0 0 8px}
+  .ld .bento{grid-template-columns:repeat(2,1fr)}
+  .ld .bento-large{grid-column:span 2}
 }
 @media (max-width:680px){
   .ld .nav-links{display:none}
-  .ld .nav-links.open{display:flex;position:absolute;top:calc(100% + 10px);left:12px;right:12px;flex-direction:column;padding:10px;border-radius:20px;background:var(--glass-strong);border:1px solid var(--stroke);box-shadow:var(--shadow);
-    -webkit-backdrop-filter:blur(var(--blur)) saturate(var(--sat));backdrop-filter:blur(var(--blur)) saturate(var(--sat))}
+  .ld .nav-links.open{display:flex;position:absolute;top:calc(100% + 10px);left:12px;right:12px;flex-direction:column;padding:10px;border-radius:16px;background:var(--glass-strong);border:1px solid var(--stroke);box-shadow:var(--shadow-lg);
+    -webkit-backdrop-filter:blur(24px) saturate(1.1);backdrop-filter:blur(24px) saturate(1.1)}
   .ld .nav-links.open a{padding:12px 14px}
+  .ld .nav-links.open .nav-lang{display:flex;padding:8px 14px 10px}
   .ld .nav{position:relative}
   .ld .burger{display:grid}
   .ld .nav .btn-login{display:none}
-  .ld .steps,.ld .price-grid,.ld .reco{grid-template-columns:1fr}
+  .ld .nav-right .lang-toggle{display:none}
+  .ld .steps,.ld .price-grid,.ld .reco,.ld .bento{grid-template-columns:1fr}
+  .ld .bento-large{grid-column:span 1}
   .ld .hero{padding-top:40px}
-  .ld .card-float{position:relative;width:100%;transform:none;margin-bottom:12px}
-  .ld .card-float-a{top:auto;bottom:auto;left:auto;right:auto}
-  .ld .stack{display:flex;flex-direction:column}
-  .ld .card-main{order:2;margin:0}
-  .ld .card-float-a{order:1}
   .ld section{padding-top:44px}
   .ld .cta{padding:28px 20px}
   .ld .referral{padding:24px}
+  .ld .gacha-banner{padding:24px 20px}
 }
 @media (prefers-reduced-motion: reduce){
   .ld *{animation:none !important;transition:none !important}
@@ -416,24 +434,6 @@ const FAQS = [
   },
 ];
 
-const CHECK_SVG = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-);
-const CHEV_SVG = (
-  <svg className="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
-);
-const BRAND_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 17l6-5-6-5" /><path d="M12 19h8" /></svg>
-);
-const BURGER_SVG = (
-  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-);
-const SUN_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-);
-const MOON_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
-);
 const DEFAULT_MODEL = "deepseek-v4.1-flash-1017";
 
 function curlPlain(model: string): string {
@@ -479,6 +479,7 @@ const QS_LIBRE = (
 );
 
 export default function Landing() {
+  const { t } = useLang();
   const rootRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
@@ -569,35 +570,31 @@ export default function Landing() {
     <div className="ld" ref={rootRef}>
       <style>{CSS}</style>
 
-      <div className="wallpaper" aria-hidden="true" />
-      <div className="blob blob-a" aria-hidden="true" />
-      <div className="blob blob-b" aria-hidden="true" />
-      <div className="blob blob-c" aria-hidden="true" />
-      <div className="blob blob-d" aria-hidden="true" />
-      <div className="blob blob-e" aria-hidden="true" />
-      <div className="grid-overlay" aria-hidden="true" />
-
       <div className="nav-shell">
         <header className="nav">
           <a className="brand" href="#top" aria-label="TipRouter">
-            <span className="brand-mark" aria-hidden="true">{BRAND_SVG}</span>
+            <span className="brand-mark" aria-hidden="true"><Waypoints size={19} strokeWidth={2.2} /></span>
             <span>Tip<em>Router</em></span>
           </a>
           <button className="icon-btn burger" type="button" aria-label="Buka menu" aria-expanded={navOpen} onClick={() => setNavOpen(!navOpen)}>
-            {BURGER_SVG}
+            <Menu size={19} />
           </button>
           <nav className={"nav-links" + (navOpen ? " open" : "")} aria-label="Navigasi utama">
-            <a href="#model" onClick={closeNav}>Model</a>
-            <a href="#cara-kerja" onClick={closeNav}>Cara Kerja</a>
-            <a href="#harga" onClick={closeNav}>Harga</a>
+            <a href="#model" onClick={closeNav}>{t("Model")}</a>
+            <a href="#harga" onClick={closeNav}>{t("Harga")}</a>
+            <Link to="/gacha" onClick={closeNav}>{t("Bansos Gacha")}</Link>
+            <Link to="/status" onClick={closeNav}>{t("Status")}</Link>
             <a href="#faq" onClick={closeNav}>FAQ</a>
+            <div className="nav-lang"><LanguageToggle /></div>
           </nav>
           <div className="nav-right">
+            <LanguageToggle />
             <button className="icon-btn" type="button" aria-label="Ganti mode terang / gelap" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {theme === "dark" ? MOON_SVG : SUN_SVG}
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <Link className="btn btn-ghost btn-sm btn-login" to="/login">Masuk</Link>
-            <a className="btn btn-primary btn-sm" href="#harga">Beli Key</a>
+            <Link className="btn btn-ghost btn-sm btn-login" to="/login">{t("Masuk")}</Link>
+            <Link className="btn btn-ghost btn-sm btn-login" to="/dashboard">{t("Dashboard")}</Link>
+            <Link className="btn btn-primary btn-sm" to="/buy">{t("Beli Sekarang")}</Link>
           </div>
         </header>
       </div>
@@ -606,15 +603,15 @@ export default function Landing() {
         <div className="wrap hero">
           <div className="hero-grid">
             <div>
-              <span className="pill">API GATEWAY — ONE KEY, EVERY MODEL</span>
+              <span className="pill"><span className="pulse-dot" />{t("{count} model online • 150 RPM Fair-Use", { count: modelIds.length })}</span>
               <h1>One API key.<br />Every AI model.<br /><span className="grad">Zero hassle.</span></h1>
-              <p className="hero-sub">Route requests to 33+ models — DeepSeek, GLM, Qwen, GPT, Claude, and more — through a single OpenAI-compatible endpoint. Pay with QRIS and your key activates instantly.</p>
+              <p className="hero-sub">{t("Satu endpoint OpenAI-compatible di tiprouter.my.id/v1 — colok ke coding assistant dan chat UI favoritmu, ganti model cukup dari parameter model.")}</p>
               <div className="hero-cta">
-                <a className="btn btn-primary" href="#harga">View Plans — from Rp3,000</a>
-                <a className="btn btn-ghost" href="#kode">See the Code</a>
+                <Link className="btn btn-primary" to="/buy">{t("Mulai Sekarang — QRIS Instan")}<ArrowRight size={16} /></Link>
+                <Link className="btn btn-ghost" to="/gacha"><Gift size={16} />{t("Coba Bansos Gacha")}</Link>
               </div>
               <div className="hero-meta">
-                <div className="m"><b>33+</b><span>models, one endpoint</span></div>
+                <div className="m"><b>{modelIds.length}</b><span>models, one endpoint</span></div>
                 <div className="m"><b>150 RPM</b><span>requests per minute</span></div>
                 <div className="m"><b>4</b><span>max concurrent requests</span></div>
                 <div className="m"><b>24/7</b><span>automatic fallback routing</span></div>
@@ -622,30 +619,32 @@ export default function Landing() {
             </div>
 
             <div className="stack" aria-label="Quickstart TipRouter">
-              <div className="qs">
-                <div className="qs-bar">
-                  <span className="traffic" aria-hidden="true"><i /><i /><i /></span>
-                  <span className="t">Quickstart</span>
-                  <span className="qs-badge">OpenAI-compatible</span>
+              <div className="glass hero-card">
+                <div className="base-row">
+                  <span className="lbl">BASE URL</span>
+                  <code>{QS_BASE_URL}</code>
+                  <button className="copy-btn" type="button" onClick={() => copyText(QS_BASE_URL, "URL tersalin")}><Copy size={14} />Salin URL</button>
                 </div>
-                <div className="qs-body">
-                  <h3>Satu endpoint, semua model.</h3>
-                  <div className="qs-base">
-                    <span className="lbl">BASE URL</span>
-                    <code>{QS_BASE_URL}</code>
-                    <button className="copy-btn" type="button" onClick={() => copyText(QS_BASE_URL, "URL tersalin")}>Salin URL</button>
+                <div className="qs">
+                  <div className="qs-bar">
+                    <span className="traffic" aria-hidden="true"><i /><i /><i /></span>
+                    <span className="t">Quickstart</span>
+                    <span className="qs-badge">OpenAI-compatible</span>
                   </div>
-                  <div className="qs-tabs" role="tablist" aria-label="Pilih bahasa contoh kode">
-                    {QS_TABS.map((t) => (
-                      <button key={t.id} className="qs-tab" type="button" role="tab" aria-selected={quickTab === t.id} onClick={() => setQuickTab(t.id)}>
-                        {t.label}
-                      </button>
-                    ))}
+                  <div className="qs-body">
+                    <h3>Satu endpoint, semua model.</h3>
+                    <div className="qs-tabs" role="tablist" aria-label="Pilih bahasa contoh kode">
+                      {QS_TABS.map((tab) => (
+                        <button key={tab.id} className="qs-tab" type="button" role="tab" aria-selected={quickTab === tab.id} onClick={() => setQuickTab(tab.id)}>
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                    <pre className="qs-code" aria-label="Contoh kode quickstart">
+                      {quickTab === "node" ? QS_NODE : quickTab === "curl" ? QS_CURL : quickTab === "librechat" ? QS_LIBRE : QS_PYTHON}
+                    </pre>
+                    <p className="qs-note">Ganti base URL dan API key. Format request tetap sama.</p>
                   </div>
-                  <pre className="qs-code" aria-label="Contoh kode quickstart">
-                    {quickTab === "node" ? QS_NODE : quickTab === "curl" ? QS_CURL : quickTab === "librechat" ? QS_LIBRE : QS_PYTHON}
-                  </pre>
-                  <p className="qs-note">Ganti base URL dan API key. Format request tetap sama.</p>
                 </div>
               </div>
             </div>
@@ -660,11 +659,73 @@ export default function Landing() {
           </div>
         </div>
 
+        <section aria-label="Bansos Gacha">
+          <div className="wrap">
+            <div className="glass-t3 beam-border gacha-banner">
+              <div className="gacha-copy">
+                <span className="gacha-icon" aria-hidden="true"><Gift size={22} /></span>
+                <div>
+                  <h3>{t("Coba gratis dulu — Bansos Gacha")}</h3>
+                  <p>{t("Putar sekali, dapat key trial pribadi 1–24 jam. Gratis, 1x per akun/IP — tanpa kartu kredit.")}</p>
+                </div>
+              </div>
+              <Link className="btn btn-primary" to="/gacha">{t("Klaim Key Gratis")}<ArrowRight size={16} /></Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="bento" aria-label="Sorotan">
+          <div className="wrap">
+            <div className="bento">
+              <div className="glass-t2 bento-card bento-large">
+                <div className="bento-head">
+                  <h3>{t("Katalog live — model online sekarang")}</h3>
+                  <div className="bento-badges">
+                    <span className="badge-ok"><span className="pulse-dot" />{t("Online")}</span>
+                    <span className="badge-info">150 RPM</span>
+                  </div>
+                </div>
+                <p className="bento-sub">{t("Klik model buat lihat contoh kode.")}</p>
+                <div className="model-chips" role="group" aria-label="Pratinjau model">
+                  {modelIds.slice(0, 8).map((id) => (
+                    <button
+                      key={id}
+                      className="model-chip"
+                      type="button"
+                      aria-pressed={id === selectedModel}
+                      onClick={() => selectModel(id)}
+                    >
+                      <span className="pulse-dot" />{id}
+                    </button>
+                  ))}
+                </div>
+                <a className="bento-more" href="#model">{t("Lihat semua model")}<ArrowRight size={14} /></a>
+              </div>
+              <div className="glass-t2 bento-card">
+                <h3>{t("Nyambung ke tools favoritmu")}</h3>
+                <p className="bento-sub">{t("Endpoint OpenAI-compatible — tinggal ganti base URL di Cline, Roo Code, LibreChat, SillyTavern, atau OpenAI SDK.")}</p>
+                <div className="eco-badges">
+                  <span className="eco-badge"><Code2 size={15} />Cline</span>
+                  <span className="eco-badge"><Code2 size={15} />Roo Code</span>
+                  <span className="eco-badge"><MessageSquare size={15} />LibreChat</span>
+                  <span className="eco-badge"><Bot size={15} />SillyTavern</span>
+                  <span className="eco-badge"><Plug size={15} />OpenAI SDK</span>
+                </div>
+              </div>
+              <div className="glass-t2 bento-card">
+                <span className="bento-icon" aria-hidden="true"><Zap size={20} /></span>
+                <h3>{t("Aktivasi Otomatis < 5 Detik")}</h3>
+                <p className="bento-sub">{t("Bayar QRIS, pembayaran terdeteksi server-side, key langsung aktif.")}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="model">
           <div className="wrap">
             <div className="sec-head">
               <span className="kicker">Katalog Model</span>
-              <h2>33+ model, satu endpoint</h2>
+              <h2>{modelIds.length} model, satu endpoint</h2>
               <p>Satu key buat semua model di bawah — klik nama modelnya buat lihat contoh kode.</p>
             </div>
             <div className="model-chips" role="group" aria-label="Daftar model">
@@ -676,7 +737,7 @@ export default function Landing() {
                   aria-pressed={id === selectedModel}
                   onClick={() => selectModel(id)}
                 >
-                  {id}
+                  <span className="pulse-dot" />{id}
                 </button>
               ))}
             </div>
@@ -723,7 +784,7 @@ export default function Landing() {
                 <div className="code-bar">
                   <span className="traffic" aria-hidden="true"><i /><i /><i /></span>
                   <span className="t">terminal — curl</span>
-                  <button className="copy-btn" type="button" onClick={() => copyText(curlPlain(selectedModel), "Contoh kode tersalin")}>Salin kode</button>
+                  <button className="copy-btn" type="button" onClick={() => copyText(curlPlain(selectedModel), "Contoh kode tersalin")}><Copy size={14} />Salin kode</button>
                 </div>
                 <pre aria-label="Contoh kode curl">
                   <span className="c"># Ganti model-nya aja — key &amp; endpoint tetap sama</span>
@@ -749,13 +810,13 @@ export default function Landing() {
             <div className="price-grid">
               {PRICE_CARDS.map((p) => (
                 <div className={"glass price-card" + (p.hot ? " hot" : "")} key={p.plan}>
-                  {p.hot && <span className="hot-badge">Paling Laris</span>}
+                  {p.hot && <span className="hot-badge">{t("Paling Hemat")}</span>}
                   <div className="plan">{p.plan}</div>
                   <div className="amount">{p.amount}</div>
                   <div className="dur">{p.dur}</div>
                   <ul>
                     {p.bullets.map((b) => (
-                      <li key={b}>{CHECK_SVG}{b}</li>
+                      <li key={b}><Check size={15} strokeWidth={3} />{b}</li>
                     ))}
                   </ul>
                   <Link className={"btn" + (p.hot ? " btn-primary" : " btn-ghost")} to="/buy">{p.btn}</Link>
@@ -810,7 +871,7 @@ export default function Landing() {
             <div className="faq">
               {FAQS.map((f) => (
                 <details className="glass faq-item" key={f.q}>
-                  <summary>{f.q} {CHEV_SVG}</summary>
+                  <summary>{f.q} <ChevronDown className="chev" size={18} /></summary>
                   <p>{f.a}</p>
                 </details>
               ))}
@@ -831,7 +892,7 @@ export default function Landing() {
         <div className="wrap foot">
           <div>
             <a className="brand" href="#top" style={{ marginBottom: "10px" }}>
-              <span className="brand-mark" aria-hidden="true">{BRAND_SVG}</span>
+              <span className="brand-mark" aria-hidden="true"><Waypoints size={19} strokeWidth={2.2} /></span>
               <span>Tip<em>Router</em></span>
             </a>
             <p className="fine">Gateway API multi-model dengan pembayaran QRIS. Satu key, 33+ model, routing fallback otomatis.</p>
@@ -840,6 +901,14 @@ export default function Landing() {
             <Link to="/buy">Beli</Link>
             <Link to="/gacha">Gacha</Link>
             <Link to="/terms">Syarat</Link>
+            <Link to="/status" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span className="pulse-dot" aria-hidden="true" />
+              {t("Status API")}
+            </Link>
+            <a href="https://t.me/hermestele" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Send size={13} />
+              {t("Hubungi Admin")}
+            </a>
             <Link to="/dashboard/guide">Panduan</Link>
             <Link to="/dashboard/history">Riwayat</Link>
             <Link to="/notifications">Notifikasi</Link>

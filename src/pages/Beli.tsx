@@ -23,26 +23,36 @@ import { getLang, trEn } from "../lib/i18n";
 // Package-grid / QR styles from the vanilla beli page (index.css only carries
 // the shared components: card, btn, err, keybox, dot, hidden...).
 const PAGE_STYLE = `
-.pkgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:20px}
-.pkg{display:grid;gap:3px;text-align:left;padding:16px;border-radius:14px;background:var(--panel);border:1px solid var(--border);color:var(--txt);cursor:pointer;font-family:inherit;width:100%}
-.pkg:hover{border-color:var(--mut)}
-.pkg.on{border-color:var(--txt);box-shadow:0 0 0 1px var(--txt)}
+.pkgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:22px}
+.pkg{position:relative;display:grid;gap:3px;text-align:left;padding:18px 16px 16px;border-radius:16px;background:var(--glass-t2);-webkit-backdrop-filter:blur(20px) saturate(1.1);backdrop-filter:blur(20px) saturate(1.1);border:1px solid var(--border);box-shadow:var(--glass-shadow-t2),inset 0 1px 0 var(--glass-hi);color:var(--txt);cursor:pointer;font-family:inherit;width:100%;transition:transform .15s,box-shadow .15s,border-color .15s}
+.pkg:hover{border-color:rgba(125,211,252,.8);transform:translateY(-2px);box-shadow:var(--glass-shadow-t3),inset 0 1px 0 var(--glass-hi)}
+.pkg.on{border-color:rgba(125,211,252,.9);background:var(--glass-t3);box-shadow:var(--glass-shadow-t3),0 0 0 1px rgba(14,165,233,.35)}
+.pkg.feat{border-color:rgba(125,211,252,.9);background:var(--glass-t3);box-shadow:var(--glass-shadow-t3),inset 0 1px 0 var(--glass-hi)}
+.pkg.feat.on{box-shadow:var(--glass-shadow-t3),0 0 0 1px rgba(14,165,233,.45)}
+.pkg-pill{position:absolute;top:-11px;left:14px;padding:3px 10px;border-radius:999px;background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 4px 12px rgba(14,165,233,.4);white-space:nowrap}
 .pkg-name{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 .pkg-price{font-size:21px;font-weight:800;letter-spacing:-.02em}
 .pkg-usd{font-size:13px;font-weight:600;color:var(--faint)}
 .pkg-days{font-size:12.5px;color:var(--faint)}
-.qrimg{display:block;width:250px;height:250px;margin:14px auto;border-radius:12px;background:#fff;padding:8px;box-sizing:border-box}
+.qrimg{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:250px;height:250px;margin:14px auto;border-radius:16px;background:#fff;padding:16px;box-sizing:border-box;border:1px solid rgba(15,23,42,.08);box-shadow:0 8px 24px rgba(14,165,233,.1)}
+img.qr-white{width:250px;height:250px;object-fit:contain}
+.qr-white svg{display:block;max-width:100%;height:auto}
 .paytabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.paytab{padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--txt);font:inherit;font-size:14px;cursor:pointer}
-.paytab.on{background:var(--txt);color:var(--bg);border-color:var(--txt);font-weight:600}
-.addrbox{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px auto;max-width:420px;font-size:13px}
+.paytab{padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:var(--glass-t2);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--txt);font:inherit;font-size:14px;cursor:pointer;transition:background .15s,box-shadow .15s,border-color .15s,transform .15s}
+.paytab:hover{border-color:rgba(125,211,252,.8)}
+.paytab.on{background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;border-color:transparent;font-weight:700;box-shadow:0 4px 14px rgba(14,165,233,.35)}
+.addrbox{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:8px auto;max-width:420px;font-size:13px;background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:var(--glass-shadow-t2)}
 .addrbox .btn{padding:6px 12px;font-size:13px;flex-shrink:0}
 .amt{font-size:30px;font-weight:800;letter-spacing:-.02em;text-align:center}
 .count{text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--mut);margin-top:4px}
-.custombox{margin-top:14px;border:1px dashed var(--border);border-radius:12px;padding:16px;background:var(--panel)}
+.count span{font-weight:800;font-size:15px;color:var(--accent)}
+.poll-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#0ea5e9;margin-right:8px;vertical-align:1px;animation:poll-pulse 1.6s ease-in-out infinite}
+@keyframes poll-pulse{0%,100%{box-shadow:0 0 0 0 rgba(14,165,233,.45)}50%{box-shadow:0 0 0 6px rgba(14,165,233,0)}}
+.card.elevated{background:var(--glass-t3);border:1px solid rgba(125,211,252,.55);box-shadow:var(--glass-shadow-t3),inset 0 1px 0 var(--glass-hi)}
+.custombox{margin-top:14px;border:1px dashed rgba(125,211,252,.7);border-radius:16px;padding:16px;background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:var(--glass-shadow-t2)}
 .customgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:10px}
 .customgrid label{font-size:12.5px;color:var(--mut);display:block;margin-bottom:4px}
-.customgrid input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--txt);font:inherit;font-size:15px;box-sizing:border-box}
+.customgrid input{width:100%;padding:10px 12px;border-radius:10px;font:inherit;font-size:15px;box-sizing:border-box}
 .customnote{font-size:12.5px;color:var(--faint);margin-top:10px}
 `;
 
@@ -432,9 +442,10 @@ export default function Beli() {
             <button
               key={p.key}
               type="button"
-              className={"pkg" + (selected === p.key ? " on" : "")}
+              className={"pkg" + (p.key === "pro" ? " feat" : "") + (selected === p.key ? " on" : "")}
               onClick={() => setSelected(p.key)}
             >
+              {p.key === "pro" && <span className="pkg-pill">{t("Paling Hemat")}</span>}
               <span className="pkg-name">{p.name}</span>
               <span className="pkg-price">{rp(p.price)}{toUsd(p.price, fx) && <span className="pkg-usd"> · {toUsd(p.price, fx)}</span>}</span>
               <span className="pkg-days">
@@ -518,7 +529,7 @@ export default function Beli() {
                     style={{
                       display: "flex", alignItems: "center", gap: 10, textAlign: "left",
                       padding: "10px 14px", borderRadius: 10, cursor: "pointer",
-                      border: "1px solid rgba(52,211,153,.4)", background: "rgba(52,211,153,.08)",
+                      border: "1px solid rgba(52,211,153,.4)", background: "var(--glass-t2)",
                       color: "var(--txt)", font: "inherit", width: "100%",
                     }}
                   >
@@ -627,7 +638,7 @@ export default function Beli() {
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              style={{ marginTop: 3, width: 17, height: 17, flex: "none", accentColor: "var(--txt)", cursor: "pointer" }}
+              style={{ marginTop: 3, width: 17, height: 17, flex: "none", accentColor: "var(--accent)", cursor: "pointer" }}
             />
             <span>
               {t("Saya sudah membaca dan menyetujui")}{" "}
@@ -658,16 +669,16 @@ export default function Beli() {
       </div>
 
       {payVisible && (
-        <div className="card" ref={payCardRef}>
+        <div className="card elevated" ref={payCardRef}>
           <h2>{t(payMethod === "qris" ? "4. Scan & bayar" : "4. Kirim pembayaran")}</h2>
           {payMethod === "qris" ? (
             <>
               <p>{t("Pakai e-wallet / m-banking apa aja. Jangan ubah nominalnya.")}</p>
               <p className="amt">{rp(amount)}{toUsd(amount, fx) && <span className="pkg-usd"> · {toUsd(amount, fx)}</span>}</p>
               {qrisPayload ? (
-                <div className="qrimg"><QRCode value={qrisPayload} size={234} style={{ width: "100%", height: "auto" }} /></div>
+                <div className="qr-white"><QRCode value={qrisPayload} size={234} style={{ width: "100%", height: "auto" }} /></div>
               ) : qrisId && !qrFailed ? (
-                <img key={qrKey} className="qrimg" src={"/qr/" + qrisId} alt={t("QRIS pembayaran")} onError={() => setQrFailed(true)} />
+                <img key={qrKey} className="qr-white" src={"/qr/" + qrisId} alt={t("QRIS pembayaran")} onError={() => setQrFailed(true)} />
               ) : qrisId ? (
                 <div className="qrimg" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
                   <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("QR gagal dimuat. Coba muat ulang, atau buat pembayaran baru kalau sudah kedaluwarsa.")}</p>
@@ -683,9 +694,9 @@ export default function Beli() {
                 {t("Jaringan")}: {crypto.chain === "solana" ? "Solana" : "Base"}
               </p>
               {crypto.solanaPayUrl ? (
-                <div className="qrimg"><QRCode value={crypto.solanaPayUrl} size={234} style={{ width: "100%", height: "auto" }} /></div>
+                <div className="qr-white"><QRCode value={crypto.solanaPayUrl} size={234} style={{ width: "100%", height: "auto" }} /></div>
               ) : (
-                <div className="qrimg"><QRCode value={crypto.address} size={234} style={{ width: "100%", height: "auto" }} /></div>
+                <div className="qr-white"><QRCode value={crypto.address} size={234} style={{ width: "100%", height: "auto" }} /></div>
               )}
               <div className="addrbox">
                 <span className="mono" style={{ overflowWrap: "anywhere" }}>{crypto.address}</span>
@@ -711,7 +722,7 @@ export default function Beli() {
             {t("Sisa waktu")} <span>{countDown}</span>
           </p>
           <p style={{ textAlign: "center", marginTop: 8 }}>
-            <span className="dot" />
+            <span className="poll-dot" />
             <span>{t(payStatus)}</span>
           </p>
           <div className="btns">
@@ -725,7 +736,7 @@ export default function Beli() {
       )}
 
       {doneKey !== null && (
-        <div className="card" ref={doneCardRef}>
+        <div className="card elevated" ref={doneCardRef}>
           {wasExtended ? (
             <>
               <h2>{t("Key diperpanjang")}</h2>

@@ -8,8 +8,9 @@ import { useLang } from "../lib/i18n";
 // Tab styles (scoped di halaman ini; .paytab cuma ada di halaman /buy).
 const TABS_STYLE = `
 .rw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-.rw-tab{padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--txt);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
-.rw-tab.on{background:var(--txt);color:var(--bg);border-color:var(--txt);font-weight:600}
+.rw-tab{padding:9px 16px;border-radius:10px;border:1px solid rgba(125,211,252,.6);background:rgba(255,255,255,.6);color:var(--accent);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.rw-tab:hover{border-color:var(--accent)}
+.rw-tab.on{background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;border-color:transparent;font-weight:600;box-shadow:0 4px 14px rgba(14,165,233,.35)}
 .rw-tab svg{flex:none}
 `;
 

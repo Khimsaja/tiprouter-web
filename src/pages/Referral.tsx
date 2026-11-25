@@ -20,44 +20,44 @@ const MILESTONES = [
 const CSS = `
 .rf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;align-items:start}
 @media(max-width:900px){.rf-grid{grid-template-columns:1fr}}
-.rf-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.rf-card{background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--border);box-shadow:var(--glass-shadow-t2),inset 0 1px 0 var(--glass-hi);border-radius:16px;padding:20px}
 .rf-card h2{font-size:12.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:0 0 16px;display:flex;align-items:center;gap:8px}
 .rf-linkrow{display:flex;gap:8px}
-.rf-linkrow input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:11px 13px;font-size:13.5px;font-family:ui-monospace,monospace}
-.rf-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);color:var(--txt);border-radius:10px;padding:11px 15px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
-.rf-btn:hover{border-color:var(--faint)}
-.rf-btn.primary{background:#fff;color:#000;border-color:#fff}
+.rf-linkrow input{flex:1;min-width:0;background:rgba(255,255,255,.7);border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:11px 13px;font-size:13.5px;font-family:var(--font-mono)}
+.rf-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(125,211,252,.6);background:rgba(255,255,255,.6);color:var(--accent);border-radius:10px;padding:11px 15px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.rf-btn:hover{border-color:var(--accent)}
+.rf-btn.primary{background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(14,165,233,.35)}
 .rf-share{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .rf-share a{text-decoration:none}
 .rf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 @media(max-width:560px){.rf-stats{grid-template-columns:1fr}}
-.rf-stat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px}
-.rf-stat .n{font-size:26px;font-weight:800}
+.rf-stat{background:var(--glass-t2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.rf-stat .n{font-size:26px;font-weight:800;font-family:var(--font-mono)}
 .rf-stat .l{font-size:12px;color:var(--mut);margin-top:4px}
 .rf-steps{display:flex;flex-direction:column;gap:12px}
 .rf-step{display:flex;gap:12px;align-items:flex-start}
-.rf-step .num{width:28px;height:28px;border-radius:50%;background:#fff;color:#000;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rf-step .num{width:28px;height:28px;border-radius:50%;background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(14,165,233,.35)}
 .rf-step p{margin:2px 0 0;font-size:13.5px;color:var(--mut);line-height:1.55}
 .rf-step p b{color:var(--txt)}
 .rf-table{width:100%;border-collapse:collapse;font-size:13.5px}
-.rf-table th{text-align:left;color:var(--faint);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;padding:8px 6px;border-bottom:1px solid var(--line)}
-.rf-table td{padding:10px 6px;border-bottom:1px solid var(--line)}
+.rf-table th{text-align:left;color:var(--faint);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;padding:8px 6px;border-bottom:1px solid var(--border-soft)}
+.rf-table td{padding:10px 6px;border-bottom:1px solid var(--border-soft)}
 .rf-table tr:last-child td{border-bottom:none}
 .rf-table .b{font-weight:800;color:var(--green)}
-.rf-ms{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.rf-ms{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px}
 .rf-ms:last-child{border-bottom:none}
-.rf-ms .bar{flex:1;height:8px;background:var(--bg);border:1px solid var(--line);border-radius:99px;overflow:hidden}
-.rf-ms .bar i{display:block;height:100%;background:#fff;border-radius:99px}
-.rf-ms.done .bar i{background:var(--green)}
+.rf-ms .bar{flex:1;height:8px;background:rgba(14,165,233,.12);border:1px solid var(--border-soft);border-radius:99px;overflow:hidden}
+.rf-ms .bar i{display:block;height:100%;background:linear-gradient(90deg,#0ea5e9,#0284c7);border-radius:99px}
+.rf-ms.done .bar i{background:linear-gradient(90deg,#10b981,#047857)}
 .rf-hist{display:flex;flex-direction:column}
-.rf-hrow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rf-hrow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
 .rf-hrow:last-child{border-bottom:none}
 .rf-hrow .m{color:var(--mut);font-size:12px}
 .rf-board{display:flex;flex-direction:column}
-.rf-brow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.rf-brow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px}
 .rf-brow:last-child{border-bottom:none}
-.rf-rank{width:26px;height:26px;border-radius:8px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
-.rf-brow.top .rf-rank{background:#fff;color:#000;border-color:#fff}
+.rf-rank{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.55);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.rf-brow.top .rf-rank{background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;border-color:transparent}
 .rf-note{font-size:12.5px;color:var(--mut);line-height:1.6;margin-top:12px}
 .rf-empty{color:var(--faint);font-size:13px;padding:12px 0}
 `;

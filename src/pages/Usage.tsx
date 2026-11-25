@@ -15,21 +15,21 @@ type ExportRow = {
 type ExportData = { rows: ExportRow[]; truncated: boolean; keys: { id: string; label: string }[] };
 
 const PAGE_STYLE = `
-.ubar-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.ubar-row{padding:12px 0;border-bottom:1px solid var(--border-soft)}
 .ubar-row:last-child{border-bottom:0}
 .ubar-top{display:flex;justify-content:space-between;gap:12px;font-size:14px}
 .ubar-top .n{font-weight:600}
-.ubar-top .t{font-weight:600;font-family:var(--mono);font-size:13px}
+.ubar-top .t{font-weight:600;font-family:var(--font-mono);font-size:13px}
 .xfilters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:14px 0}
 .xfield{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mut)}
-.xfield input,.xfield select{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:13.5px;color:var(--txt);max-width:100%}
+.xfield input,.xfield select{background:rgba(255,255,255,.7);border:1px solid rgba(148,163,184,.55);border-radius:10px;padding:8px 10px;font-size:13.5px;color:var(--txt);max-width:100%}
 .xfield input[type="date"]{font-family:inherit}
 .xpresets{display:flex;gap:6px}
-.xpresets button{border:1px solid var(--border);background:transparent;color:var(--mut);border-radius:999px;padding:7px 13px;font-size:12.5px;cursor:pointer}
-.xpresets button.on{background:var(--txt);color:var(--bg);border-color:var(--txt);font-weight:700}
+.xpresets button{border:1px solid rgba(125,211,252,.6);background:rgba(255,255,255,.6);color:var(--accent);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer}
+.xpresets button.on{background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;border-color:transparent;font-weight:700;box-shadow:0 4px 14px rgba(14,165,233,.35)}
 .xactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .xsum{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mut);margin:10px 0}
-.xsum b{color:var(--txt);font-family:var(--mono)}
+.xsum b{color:var(--txt);font-family:var(--font-mono)}
 `;
 
 function useKeys(): KeysData | null {
@@ -282,7 +282,42 @@ function ExportSection({ keys }: { keys: KeyItem[] }) {
               const [y, m, dd] = iso.split("-");
               return `${dd}/${m}/${y}`;
             };
+            const asc = [...days].reverse();
+            const maxReq = Math.max(...asc.map(([, v]) => v.req), 1);
+            const cw = 560; const ch = 150; const cpad = 8;
+            // Wider inset for the plotted points (labels are centered on them,
+            // 5 chars wide) so first/last date labels never clip at the edges.
+            const cpadX = 24;
+            const cpts = asc.map(([, v], i) => ({
+              x: cpadX + (asc.length > 1 ? (i / (asc.length - 1)) * (cw - cpadX * 2) : (cw - cpadX * 2) / 2),
+              y: ch - 22 - (v.req / maxReq) * (ch - 44),
+            }));
+            const cline = cpts.map((pt, i) => `${i === 0 ? "M" : "L"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ");
+            const carea = asc.length > 1 ? `${cline} L${cpts[cpts.length - 1].x.toFixed(1)},${ch - 22} L${cpts[0].x.toFixed(1)},${ch - 22} Z` : "";
             return (
+              <>
+              <h3 style={{ fontSize: 14, margin: "14px 0 4px" }}>{t("Request per hari")}</h3>
+              <svg viewBox={`0 0 ${cw} ${ch}`} width="100%" role="img" aria-label={t("Request per hari")}>
+                <defs>
+                  <linearGradient id="usageArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0EA5E9" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#0EA5E9" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {[0.25, 0.5, 0.75].map((f) => (
+                  <line key={f} x1={cpad} x2={cw - cpad} y1={ch * f} y2={ch * f} stroke="rgba(100,116,139,.18)" strokeWidth="1" />
+                ))}
+                {carea ? <path d={carea} fill="url(#usageArea)" /> : null}
+                {asc.length > 1 ? <path d={cline} fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /> : null}
+                {cpts.map((pt, i) => (
+                  <circle key={i} cx={pt.x} cy={pt.y} r="3.5" fill="#fff" stroke="#0EA5E9" strokeWidth="2" />
+                ))}
+                {cpts.map((pt, i) => (
+                  <text key={i} x={pt.x} y={ch - 8} textAnchor="middle" fontSize="10" fill="var(--faint)" fontFamily="var(--font-mono)">
+                    {fmtD(asc[i][0]).slice(0, 5)}
+                  </text>
+                ))}
+              </svg>
               <div className="ptable-wrap" style={{ marginBottom: 16 }}>
                 <table className="ptable">
                   <thead>
@@ -297,7 +332,7 @@ function ExportSection({ keys }: { keys: KeyItem[] }) {
                   <tbody>
                     {days.map(([day, s]) => (
                       <tr key={day}>
-                        <td style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{fmtD(day)}</td>
+                        <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{fmtD(day)}</td>
                         <td style={{ textAlign: "right" }}>{fmtNum(s.req)}</td>
                         <td style={{ textAlign: "right" }}>{fmtNum(s.input)}</td>
                         <td style={{ textAlign: "right" }}>{fmtNum(s.output)}</td>
@@ -307,6 +342,7 @@ function ExportSection({ keys }: { keys: KeyItem[] }) {
                   </tbody>
                 </table>
               </div>
+              </>
             );
           })()}
           <div className="ptable-wrap">
@@ -323,12 +359,12 @@ function ExportSection({ keys }: { keys: KeyItem[] }) {
               <tbody>
                 {data.rows.slice(0, 15).map((r, i) => (
                   <tr key={i}>
-                    <td style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
                       {new Date(r.ts).toLocaleString()}
                     </td>
                     <td>{labelOf(r.key_id)}</td>
                     <td><code>{r.model || "–"}</code></td>
-                    <td style={{ textAlign: "right", fontFamily: "var(--mono)" }}>
+                    <td style={{ textAlign: "right", fontFamily: "var(--font-mono)" }}>
                       {fmtNum((r.input_tokens || 0) + (r.output_tokens || 0))}
                     </td>
                     <td>{r.status === "completed" ? t("Sukses") : r.status === "failed" ? t("Gagal") : r.status === "cancelled" ? t("Batal") : r.status || "–"}</td>
@@ -451,23 +487,8 @@ function ExportSection({ keys }: { keys: KeyItem[] }) {
           </div>
           {/* Image preview modal */}
           {previewUrl && (
-            <div
-              style={{
-                position: "fixed", inset: 0, zIndex: 100,
-                background: "rgba(0,0,0,0.75)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                padding: 16,
-              }}
-              onClick={() => setPreviewUrl(null)}
-            >
-              <div
-                style={{
-                  background: "var(--card, #1a1a2e)", borderRadius: 12,
-                  padding: 16, maxWidth: 560, width: "100%",
-                  maxHeight: "90vh", overflow: "auto",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div className="modal-backdrop" onClick={() => setPreviewUrl(null)}>
+              <div className="modal-card" style={{ maxWidth: 560, maxHeight: "90vh", overflow: "auto" }} onClick={(e) => e.stopPropagation()}>
                 <h3 style={{ margin: "0 0 12px" }}>{t("Pratinjau Gambar")}</h3>
                 <img
                   src={previewUrl}

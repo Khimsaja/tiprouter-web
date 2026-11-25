@@ -4,8 +4,10 @@ import { useLang } from "../lib/i18n";
 
 const PAGE_STYLE = `
 .copyrow{display:flex;gap:10px;align-items:stretch;margin-top:12px}
-.copyrow .url{flex:1;font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;overflow-x:auto;white-space:nowrap}
+.copyrow .url{flex:1;font-family:var(--font-mono);font-size:13px;padding:10px 12px;border-radius:12px;background:rgba(15,23,42,.9);border:1px solid rgba(100,116,139,.45);color:#f1f5f9;display:flex;align-items:center;overflow-x:auto;white-space:nowrap}
 .copyrow .btn{width:auto}
+.card ol li::marker{color:var(--accent);font-weight:800}
+.card ol li code{background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-size:12.5px}
 `;
 
 const BASE_URL = "https://tiprouter.my.id/v1";

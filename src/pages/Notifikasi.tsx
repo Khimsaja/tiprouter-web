@@ -70,7 +70,9 @@ export default function Notifikasi() {
         </div>
         {items.length === 0 && !loading && (
           <p className="notif-empty" style={{ padding: "28px 18px" }}>
-            <BellRing size={20} style={{ opacity: 0.5 }} />
+            <span style={{ display: "inline-grid", placeItems: "center", width: 44, height: 44, borderRadius: 12, background: "var(--accent-soft)", color: "var(--accent)", marginBottom: 10 }}>
+              <BellRing size={20} />
+            </span>
             <br />
             {t("Belum ada notifikasi.")}
           </p>

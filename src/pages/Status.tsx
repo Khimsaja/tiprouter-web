@@ -43,10 +43,13 @@ export default function Status() {
   return (
     <PublicLayout>
       <div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", margin: "18px 0 6px" }}>
+        <div style={{ marginTop: 18 }}>
+          <span className="badge-ok"><span className="pulse-dot" />{t("Online")}</span>
+        </div>
+        <h1 className="page" style={{ margin: "12px 0 6px" }}>
           {t("Status model")}
         </h1>
-        <p style={{ color: "var(--mut)", fontSize: 14, margin: "0 0 18px" }}>
+        <p className="sub" style={{ margin: "0 0 18px" }}>
           {t("Tingkat keberhasilan tiap model dalam 1 jam terakhir, dihitung dari traffic asli jaringan TipRouter. Diperbarui tiap 30 detik.")}
         </p>
 
@@ -102,7 +105,7 @@ export default function Status() {
                       {meta.icon}
                       {meta.label}
                       <span style={{ color: "var(--mut)", fontWeight: 600 }}>
-                        · {pct(m)} · {fmtNum(m.hits)} {t("req")}
+                        · <span className="mono">{pct(m)}</span> · <span className="mono">{fmtNum(m.hits)}</span> {t("req")}
                       </span>
                     </span>
                   </div>
@@ -110,7 +113,7 @@ export default function Status() {
                     style={{
                       height: 8,
                       borderRadius: 99,
-                      background: "var(--border)",
+                      background: "rgba(14,165,233,.12)",
                       overflow: "hidden",
                     }}
                     role="progressbar"

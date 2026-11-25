@@ -112,6 +112,7 @@ export default function NotifBell() {
         aria-label={t("Notifikasi")}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
+        style={open ? { borderColor: "rgba(125,211,252,.8)", color: "var(--accent)" } : undefined}
       >
         <Bell size={18} />
         {unread > 0 && <span className="notif-badge">{unread > 9 ? "9+" : unread}</span>}
@@ -127,7 +128,12 @@ export default function NotifBell() {
             )}
           </div>
           <div className="notif-list">
-            {items.length === 0 && <p className="notif-empty">{t("Belum ada notifikasi.")}</p>}
+            {items.length === 0 && (
+              <p className="notif-empty" style={{ display: "grid", justifyItems: "center", gap: 8 }}>
+                <Bell size={20} color="var(--faint)" />
+                {t("Belum ada notifikasi.")}
+              </p>
+            )}
             {items.map((n) => {
               const K = KIND_ICON[n.kind] ?? Info;
               return (

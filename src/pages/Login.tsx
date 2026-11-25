@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Github } from "lucide-react";
+import { Github, KeyRound } from "lucide-react";
 import { PublicLayout } from "../components/chrome";
 import Turnstile, { type TurnstileHandle } from "../components/Turnstile";
 import { api, type Config } from "../lib/api";
@@ -30,8 +30,13 @@ function GoogleIcon() {
 // Key form styles live in index.css (.keyform/.tgwrap are page-shell classes
 // from the vanilla build); keep them local to this page like the source did.
 const PAGE_STYLE = `
-.keyform{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
-.tgwrap{margin-top:18px;border-top:1px solid var(--border);padding-top:16px;display:flex;justify-content:center;min-height:48px}
+.login-wrap{max-width:480px;margin:0 auto}
+.login-wrap h1.page,.login-wrap .sub{text-align:center;margin-left:auto;margin-right:auto}
+.login-mark{width:56px;height:56px;margin:8px auto 16px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;box-shadow:0 8px 20px rgba(14,165,233,.4),inset 0 1px 0 rgba(255,255,255,.35)}
+.card.login-card{background:var(--glass-t3);border:1px solid rgba(125,211,252,.55);box-shadow:var(--glass-shadow-t3),inset 0 1px 0 var(--glass-hi)}
+.login-card .btns .btn{flex:1;justify-content:center}
+.keyform{margin-top:18px;border-top:1px solid var(--border-soft);padding-top:16px}
+.tgwrap{margin-top:18px;border-top:1px solid var(--border-soft);padding-top:16px;display:flex;justify-content:center;min-height:48px}
 .tgwrap:empty{border-top:0;padding-top:0;margin-top:0;min-height:0}
 `;
 
@@ -93,13 +98,17 @@ export default function Login() {
   return (
     <PublicLayout>
       <style>{PAGE_STYLE}</style>
+      <div className="login-wrap">
+      <div className="login-mark" aria-hidden="true">
+        <KeyRound size={26} />
+      </div>
       <h1 className="page">
         {t("Masuk ke")} <em>TipRouter.</em>
       </h1>
       <p className="sub">
         {t("Lihat key kamu, sisa masa aktif, dan perpanjang paket. Paling cepat: masuk pakai API key kamu. Bisa juga pakai Google atau GitHub, lalu hubungkan Telegram biar key dari bot langsung ketemu.")}
       </p>
-      <div className="card">
+      <div className="card login-card">
         <h2>{t("Pilih cara masuk")}</h2>
         <p>{t("Pakai API key kamu, langsung masuk tanpa daftar apa-apa.")}</p>
         <form className="keyform" style={{ marginTop: 14, paddingTop: 0, borderTop: 0 }} onSubmit={submit}>
@@ -152,6 +161,7 @@ export default function Login() {
         <p className="muted" style={{ marginTop: 14 }}>
           {providerNote}
         </p>
+      </div>
       </div>
     </PublicLayout>
   );

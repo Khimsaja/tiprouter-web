@@ -39,9 +39,6 @@ function fmtRemain(sec: number) {
 }
 
 const CSS = `
-.bn-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--green);color:var(--green);font-size:13px;font-weight:700;padding:7px 13px;border-radius:999px}
-.bn-badge .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:bnPulse 2s infinite}
-@keyframes bnPulse{0%{box-shadow:0 0 0 0 rgba(31,157,85,.45)}70%{box-shadow:0 0 0 9px rgba(31,157,85,0)}100%{box-shadow:0 0 0 0 rgba(31,157,85,0)}}
 .bn-h1{font-size:clamp(36px,6vw,56px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:16px 0 12px}
 .bn-h1 em{font-style:normal;color:var(--faint)}
 .bn-sub{color:var(--mut);font-size:clamp(15px,2.4vw,17px);max-width:620px;line-height:1.6}
@@ -52,34 +49,30 @@ const CSS = `
 .bn-note{font-size:12.5px;color:var(--faint);margin-top:12px;line-height:1.55}
 .bn-steps{display:flex;flex-direction:column;gap:14px}
 .bn-step{display:flex;gap:14px}
-.bn-step .n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--txt);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:15px}
+.bn-step .n{flex:none;width:32px;height:32px;border-radius:50%;background:linear-gradient(90deg,#0ea5e9,#0284c7);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(14,165,233,.35)}
 .bn-step p{color:var(--mut);font-size:15px;line-height:1.55;padding-top:5px}
 .bn-step p b{color:var(--txt)}
 .bn-rules{list-style:none;display:flex;flex-direction:column;gap:10px}
 .bn-rules li{color:var(--mut);font-size:14.5px;line-height:1.55;padding-left:22px;position:relative}
-.bn-rules li:before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;border-radius:2px;background:var(--txt)}
+.bn-rules li:before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;border-radius:2px;background:var(--accent)}
 .bn-rules li b{color:var(--txt)}
-.bn-rules li a{font-weight:700;text-decoration:underline}
+.bn-rules li a{font-weight:700;text-decoration:underline;color:var(--accent)}
 .bn-full{grid-column:1/-1}
 .bn-foot-note{margin-top:36px;color:var(--faint);font-size:13px;text-align:center;line-height:1.7}
-.bn-foot-note a{font-weight:700;text-decoration:underline}
+.bn-foot-note a{font-weight:700;text-decoration:underline;color:var(--accent)}
 .bn-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-.bn-tier{border:1px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center;background:var(--panel);transition:all .12s}
+.bn-tier{border:1px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center;background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);transition:all .12s}
 .bn-tier .h{font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--txt)}
 .bn-tier .u{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-top:2px}
 .bn-tier .p{font-size:11.5px;font-weight:700;color:var(--faint);margin-top:6px;font-family:var(--font-mono)}
-.bn-tier.lit{border-color:var(--txt);box-shadow:0 0 0 1px var(--txt);transform:scale(1.03)}
+.bn-tier.lit{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 24px rgba(14,165,233,.25);transform:scale(1.03);background:var(--glass-t3)}
 .bn-tier.win{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
 .bn-tier.jackpot .h{color:var(--green)}
 .bn-spin{text-align:center;margin-top:22px}
 .bn-spin .btn{font-size:16px;padding:14px 34px}
 .bn-spin .muted{margin-top:10px}
-.bn-keybox{font-family:var(--font-mono);font-size:14px;word-break:break-all;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:14px;color:var(--txt)}
 .bn-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .bn-remain{font-family:var(--font-mono);font-size:30px;font-weight:800;letter-spacing:.02em;text-align:center;margin-top:6px;color:var(--txt)}
-.bn-pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:1px solid var(--border);color:var(--mut)}
-.bn-pill.ok{color:var(--green);border-color:var(--green)}
-.bn-pill.exp{color:var(--red);border-color:var(--red)}
 .bn-center{text-align:center}
 @media (max-width:880px){.bn-grid{grid-template-columns:1fr}.bn-tiers{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){
@@ -202,8 +195,8 @@ export default function Bansos() {
   return (
     <PublicLayout wide>
       <style>{CSS}</style>
-      <div className="bn-badge">
-        <span className="pulse" /> {t("Gacha Bansos — 1x putaran gratis per akun")}
+      <div className="badge-ok">
+        <span className="pulse-dot" /> {t("Gacha Bansos — 1x putaran gratis per akun")}
       </div>
       <h1 className="bn-h1">
         Gacha <em>Bansos</em>
@@ -214,7 +207,7 @@ export default function Bansos() {
       </p>
 
       <div className="bn-grid">
-        <section className="card bn-card bn-full">
+        <section className="card bn-card bn-full beam-border">
           <h2>{t("Mesin Gacha")}</h2>
           <p className="bn-note" style={{ marginTop: 0 }}>
             {t("Enam tingkat hadiah, peluangnya terbuka apa adanya:")}
@@ -277,9 +270,9 @@ export default function Bansos() {
                 : t("Key gacha kamu ({hours} jam)", { hours: result.durationHours })}
             </h2>
             <p>
-              <span className={"bn-pill " + (expired ? "exp" : "ok")}>{expired ? t("Habis") : t("Aktif")}</span>
+              <span className={expired ? "chip warn" : "chip ok"}>{expired ? t("Habis") : t("Aktif")}</span>
             </p>
-            <div className="bn-keybox">{result.key}</div>
+            <div className="keybox">{result.key}</div>
             <div className="bn-btns">
               <button className="btn primary" type="button" onClick={copyKey}>
                 {t(copyLabel)}

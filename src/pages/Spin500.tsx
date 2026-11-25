@@ -11,17 +11,17 @@ const SEGS = 24;
 
 const CSS = `
 .sp5-wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-top:20px}
-.sp5-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;width:100%;max-width:420px}
-.sp5-card h2{font-size:16px;margin-bottom:14px;color:var(--acc,#38BDF8)}
+.sp5-card{background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--border);box-shadow:var(--glass-shadow-t2),inset 0 1px 0 var(--glass-hi);border-radius:16px;padding:22px;width:100%;max-width:420px}
+.sp5-card h2{font-size:16px;margin-bottom:14px;color:var(--accent)}
 .sp5-wheel{width:100%;max-width:340px;display:block;margin:0 auto}
 .sp5-res{text-align:center;font-size:14px;color:var(--mut);margin-top:12px;min-height:28px}
-.sp5-res b{color:var(--gold,#FBBF24);font-size:26px}
+.sp5-res b{color:var(--accent);font-size:26px;font-family:var(--font-mono)}
 .sp5-res .kena{color:#4ADE80;font-weight:700}
 .sp5-nums{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:6px}
-.sp5-num{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px 4px;text-align:center;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;transition:all .3s}
-.sp5-num.hit{border-color:var(--gold,#FBBF24);color:var(--gold,#FBBF24);transform:scale(1.06)}
+.sp5-num{background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:12px;padding:16px 4px;text-align:center;font-size:22px;font-weight:800;font-family:var(--font-mono);transition:all .3s}
+.sp5-num.hit{border-color:var(--accent);color:var(--accent);transform:scale(1.06);box-shadow:0 0 0 1px var(--accent),0 8px 20px rgba(14,165,233,.2)}
 .sp5-tebakan{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.sp5-tb{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;transition:all .3s}
+.sp5-tb{background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:15px;font-weight:700;font-family:var(--font-mono);transition:all .3s}
 .sp5-tb.kena{border-color:#4ADE80;color:#4ADE80;box-shadow:0 0 12px rgba(74,222,128,.25)}
 .sp5-log{margin-top:14px;font-size:13px;color:var(--mut);max-height:120px;overflow:auto}
 .sp5-log div{padding:4px 0;border-bottom:1px dashed var(--border)}
@@ -55,11 +55,11 @@ export default function Spin500() {
     for (let i = 0; i < SEGS; i++) {
       const a0 = angle + i * arc, a1 = a0 + arc;
       ctx.beginPath(); ctx.moveTo(CX, CY); ctx.arc(CX, CY, R, a0, a1); ctx.closePath();
-      ctx.fillStyle = i % 2 ? "#16213A" : "#1B2A4A";
+      ctx.fillStyle = i % 2 ? "#0C4A6E" : "#0369A1";
       ctx.fill();
       ctx.save();
       ctx.translate(CX, CY); ctx.rotate(a0 + arc / 2);
-      ctx.textAlign = "right"; ctx.fillStyle = "#8fa3bf";
+      ctx.textAlign = "right"; ctx.fillStyle = "#E0F2FE";
       ctx.font = "bold 12px system-ui"; ctx.textBaseline = "middle";
       const lo = Math.floor((i * POOL_SIZE) / SEGS) + 1;
       const hi = Math.floor(((i + 1) * POOL_SIZE) / SEGS);
@@ -68,10 +68,10 @@ export default function Spin500() {
     }
     ctx.beginPath();
     ctx.moveTo(CX - 12, 6); ctx.lineTo(CX + 12, 6); ctx.lineTo(CX, 30); ctx.closePath();
-    ctx.fillStyle = "#FBBF24"; ctx.fill();
+    ctx.fillStyle = "#0284C7"; ctx.fill();
     ctx.beginPath(); ctx.arc(CX, CY, 26, 0, TAU);
-    ctx.fillStyle = "#38BDF8"; ctx.fill();
-    ctx.fillStyle = "#0B0F1A"; ctx.font = "bold 13px system-ui";
+    ctx.fillStyle = "#0284C7"; ctx.fill();
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 13px system-ui";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("SPIN", CX, CY);
   }, []);

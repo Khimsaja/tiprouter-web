@@ -78,10 +78,16 @@ const SECTIONS: { title: string; points: string[]; cta?: { href: string; label: 
   },
 ];
 
+const SY_STYLE = `
+.sy h2{padding-left:12px;border-left:3px solid var(--accent)}
+.sy a{color:var(--accent);font-weight:700}
+`;
+
 export default function Syarat() {
   const { t } = useLang();
   return (
     <PublicLayout>
+      <style>{SY_STYLE}</style>
       <h1 className="page">
         {t("Syarat &")} <em>{t("Ketentuan.")}</em>
       </h1>
@@ -89,7 +95,7 @@ export default function Syarat() {
         {t("Dengan membeli dan/atau menggunakan API key TipRouter, kamu dianggap sudah membaca dan menyetujui semua poin di bawah ini. Beli = setuju.")}
       </p>
       {SECTIONS.map((s) => (
-        <div className="card" key={s.title} style={{ marginTop: 14 }}>
+        <div className="card sy" key={s.title} style={{ marginTop: 14 }}>
           <h2>{t(s.title)}</h2>
           {s.points.map((p) => (
             <p key={p} style={{ marginTop: 8 }}>
@@ -110,7 +116,7 @@ export default function Syarat() {
           ))}
         </div>
       ))}
-      <div className="card" style={{ marginTop: 14 }}>
+      <div className="card glass-t3" style={{ marginTop: 14 }}>
         <p style={{ margin: 0 }}>
           {t("Intinya: kami menyediakan akses unlimited yang jujur dan berusaha menjaga layanan tetap enak dipakai. Sisanya, mohon pengertian untuk hal-hal yang memang di luar kendali kami. Makasih sudah jadi pembeli yang pengertian.")}
         </p>

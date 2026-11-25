@@ -7,8 +7,11 @@ import { useLang } from "../lib/i18n";
 type KeysData = { keys: KeyItem[]; reason?: string };
 
 const PAGE_STYLE = `
-.models{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.models .mchip{font-family:var(--mono);font-size:12.5px;padding:5px 10px;border-radius:8px;background:var(--panel);border:1px solid var(--border);color:var(--txt)}
+.models{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.model-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:12px;background:var(--glass-t2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--border);box-shadow:var(--glass-shadow-t2)}
+.model-row .mid{font-family:var(--font-mono);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.model-row:hover{border-color:rgba(56,189,248,.5)}
+@media (max-width: 640px){.models{grid-template-columns:1fr}}
 `;
 
 function useKeys(): KeysData | null {
@@ -67,9 +70,10 @@ export default function Models() {
       <>
         <div className="models">
           {primary.models.map((m) => (
-            <span className="mchip" key={m}>
-              {m}
-            </span>
+            <div className="model-row" key={m}>
+              <span className="mid">{m}</span>
+              <span className="badge-ok"><span className="pulse-dot" />{t("Online")}</span>
+            </div>
           ))}
         </div>
         <p className="muted" style={{ marginTop: 12 }}>

@@ -120,10 +120,13 @@ export default function Statistik() {
   return (
     <PublicLayout>
       <div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", margin: "18px 0 6px" }}>
+        <div style={{ marginTop: 18 }}>
+          <span className="badge-ok"><span className="pulse-dot" />{t("Online")}</span>
+        </div>
+        <h1 className="page" style={{ margin: "12px 0 6px" }}>
           {t("Statistik jaringan")}
         </h1>
-        <p style={{ color: "var(--mut)", fontSize: 14, margin: "0 0 18px" }}>
+        <p className="sub" style={{ margin: "0 0 18px" }}>
           {t("Data asli 24 jam terakhir dari jaringan TipRouter (agregat anonim — tanpa nama pengguna, isi chat, atau data key). Diperbarui tiap menit.")}
         </p>
 
@@ -140,7 +143,7 @@ export default function Statistik() {
                 {c.icon}
                 {c.label}
               </div>
-              <div className="val">{c.value}</div>
+              <div className="val mono">{c.value}</div>
               <div className="sub2">{c.sub}</div>
             </div>
           ))}

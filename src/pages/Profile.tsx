@@ -144,7 +144,7 @@ export default function Profile() {
         <h2>{t("Sesi")}</h2>
         <p>{t("Kamu lagi login di perangkat ini. Klik Keluar kalau udah selesai, apalagi di perangkat punya orang lain.")}</p>
         <div className="btns">
-          <button className="btn logoutBtn" type="button" onClick={() => setConfirmOut(true)}>
+          <button className="btn" type="button" style={{ color: "var(--red)", borderColor: "rgba(220,38,38,.35)" }} onClick={() => setConfirmOut(true)}>
             {t("Keluar dari akun")}
           </button>
         </div>

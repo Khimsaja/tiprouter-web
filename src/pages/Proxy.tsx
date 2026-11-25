@@ -103,26 +103,29 @@ export default function Proxy() {
       <p className="sub">
         {t("Daftar proxy publik gratis (HTTP, HTTPS, SOCKS4, SOCKS5) yang diperbarui tiap beberapa menit. Filter, pilih, lalu salin atau download. Tanpa login.")}
       </p>
+      <div style={{ marginTop: 14 }}>
+        <span className="badge-ok"><span className="pulse-dot" />{t("Diperbarui otomatis")}</span>
+      </div>
 
       <div className="stats" style={{ marginTop: 18 }}>
         <div className="stat">
           <div className="lbl">{t("TOTAL PROXY")}</div>
-          <div className="val">{stats ? fmtNum(stats.total) : "…"}</div>
+          <div className="val mono">{stats ? fmtNum(stats.total) : "…"}</div>
           <div className="sub2">{t("dari {countries} negara", { countries: stats ? fmtNum(Object.keys(stats.by_country).length) : "…" })}</div>
         </div>
         <div className="stat">
           <div className="lbl">HTTP / HTTPS</div>
-          <div className="val">{stats ? fmtNum((stats.by_protocol.http || 0)) : "…"}</div>
+          <div className="val mono">{stats ? fmtNum((stats.by_protocol.http || 0)) : "…"}</div>
           <div className="sub2">{t("{n} mendukung SSL", { n: stats ? fmtNum(stats.by_protocol.https || 0) : "…" })}</div>
         </div>
         <div className="stat">
           <div className="lbl">SOCKS5</div>
-          <div className="val">{stats ? fmtNum(stats.by_protocol.socks5 || 0) : "…"}</div>
+          <div className="val mono">{stats ? fmtNum(stats.by_protocol.socks5 || 0) : "…"}</div>
           <div className="sub2">SOCKS4: {stats ? fmtNum(stats.by_protocol.socks4 || 0) : "…"}</div>
         </div>
         <div className="stat">
           <div className="lbl">{t("TERAKHIR DIPERBARUI")}</div>
-          <div className="val" style={{ fontSize: 17 }}>{updatedAt ? new Date(updatedAt).toLocaleTimeString() : "…"}</div>
+          <div className="val mono" style={{ fontSize: 17 }}>{updatedAt ? new Date(updatedAt).toLocaleTimeString() : "…"}</div>
           <div className="sub2">{t("diperbarui tiap beberapa menit")}</div>
         </div>
       </div>
@@ -178,7 +181,7 @@ export default function Proxy() {
           </button>
         </div>
 
-        {error ? <p className="err" style={{ marginTop: 12 }}>{error}</p> : null}
+        {error ? <p className="err show" style={{ marginTop: 12 }}>{error}</p> : null}
 
         <div className="ptable-wrap">
           <table className="ptable">
@@ -203,8 +206,8 @@ export default function Proxy() {
                     <td><code>{u}</code></td>
                     <td>{p.country_code || "-"}<span className="muted"> {p.city || ""}</span></td>
                     <td>{p.anonymity || "-"}</td>
-                    <td>{p.uptime_percent != null ? p.uptime_percent.toFixed(0) + "%" : "-"}</td>
-                    <td>{p.latency_ms != null ? Math.round(p.latency_ms) + " ms" : "-"}</td>
+                    <td className="mono">{p.uptime_percent != null ? p.uptime_percent.toFixed(0) + "%" : "-"}</td>
+                    <td className="mono">{p.latency_ms != null ? Math.round(p.latency_ms) + " ms" : "-"}</td>
                     <td className="muted">{p.isp || "-"}</td>
                     <td>
                       <button className="icon-btn" onClick={() => copyText(u, u)} aria-label={t("Salin") + " " + u}>
