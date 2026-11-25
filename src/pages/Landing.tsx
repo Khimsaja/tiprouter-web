@@ -14,7 +14,6 @@ import {
   Plug,
   Send,
   Sun,
-  Waypoints,
   Zap,
 } from "lucide-react";
 import { LanguageToggle, useLang } from "../lib/i18n";
@@ -33,35 +32,41 @@ const CSS = `
   --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --ink:#0F172A;--ink-2:#475569;--ink-3:#64748B;
-  --glass:rgba(255,255,255,.65);
-  --glass-strong:rgba(255,255,255,.85);
-  --glass-soft:rgba(255,255,255,.5);
+  --glass:linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,.07) 48%,rgba(255,255,255,.02)),rgba(255,255,255,.45);
+  --glass-strong:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.1) 48%,rgba(255,255,255,.03)),rgba(255,255,255,.7);
+  --glass-soft:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.06) 48%,rgba(255,255,255,.02)),rgba(255,255,255,.38);
   --stroke:rgba(255,255,255,.9);
   --stroke-2:rgba(15,23,42,.08);
-  --shadow:0 8px 32px rgba(14,165,233,.08);
-  --shadow-lg:0 12px 40px -8px rgba(14,165,233,.18);
+  --edge:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.2);
+  --edge:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.2);
+  --edge:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.2);
+  --shadow:0 8px 32px rgba(14,165,233,.14);
+  --shadow-lg:0 12px 40px -8px rgba(14,165,233,.26);
   --accent:#0284C7;--accent-2:#0EA5E9;--accent-ink:#ffffff;--accent-soft:rgba(14,165,233,.12);
   --green:#047857;
   --amber:#b45309;--amber-soft:rgba(217,119,6,.12);
   --code-bg:rgba(15,23,42,.9);--code-ink:#f1f5f9;
-  --nav-bg:rgba(255,255,255,.75);--chip:rgba(255,255,255,.6);--input:rgba(255,255,255,.6);
+  --nav-bg:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.08) 48%,rgba(255,255,255,.02)),rgba(255,255,255,.55);--chip:rgba(255,255,255,.45);--input:rgba(255,255,255,.5);
   color-scheme:light;
   font-family:var(--font);color:var(--ink);background:transparent;padding-top:14px;
   -webkit-font-smoothing:antialiased;line-height:1.55;
 }
 html[data-theme="dark"] .ld{
   --ink:#F1F5F9;--ink-2:#94A3B8;--ink-3:#7D8AA0;
-  --glass:rgba(15,23,42,.6);
-  --glass-strong:rgba(15,23,42,.82);
-  --glass-soft:rgba(15,23,42,.45);
+  --glass:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.03) 48%,rgba(255,255,255,.01)),rgba(15,23,42,.48);
+  --glass-strong:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04) 48%,rgba(255,255,255,.01)),rgba(15,23,42,.68);
+  --glass-soft:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02) 48%,rgba(255,255,255,.01)),rgba(15,23,42,.36);
   --stroke:rgba(148,163,184,.18);
   --stroke-2:rgba(148,163,184,.14);
-  --shadow:0 8px 32px rgba(2,6,23,.5);
-  --shadow-lg:0 12px 40px -8px rgba(2,6,23,.6);
+  --edge:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.05);
+  --edge:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.05);
+  --edge:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.05);
+  --shadow:0 8px 32px rgba(2,6,23,.55);
+  --shadow-lg:0 12px 40px -8px rgba(2,6,23,.65);
   --accent:#38BDF8;--accent-2:#0EA5E9;--accent-ink:#ffffff;--accent-soft:rgba(56,189,248,.14);
   --green:#34D399;
   --amber:#f5bc52;--amber-soft:rgba(245,188,82,.14);
-  --nav-bg:rgba(15,23,42,.72);--chip:rgba(15,23,42,.5);--input:rgba(15,23,42,.5);
+  --nav-bg:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.03) 48%,rgba(255,255,255,.01)),rgba(15,23,42,.6);--chip:rgba(15,23,42,.4);--input:rgba(15,23,42,.42);
   color-scheme:dark;
 }
 .ld ::selection{background:var(--accent);color:#fff}
@@ -78,16 +83,16 @@ html[data-theme="dark"] .ld{
 /* ===== Glass primitives (tier global) ===== */
 .ld .glass{
   background:var(--glass);
-  -webkit-backdrop-filter:blur(20px) saturate(1.1);
-          backdrop-filter:blur(20px) saturate(1.1);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+          backdrop-filter:blur(24px) saturate(1.4);
   border:1px solid var(--stroke);
-  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.35);
+  box-shadow:var(--shadow), var(--edge);
   border-radius:var(--radius);
 }
 .ld .glass-soft{
   background:var(--glass-soft);
-  -webkit-backdrop-filter:blur(12px) saturate(1.1);
-          backdrop-filter:blur(12px) saturate(1.1);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+          backdrop-filter:blur(16px) saturate(1.4);
   border:1px solid var(--stroke-2);
   border-radius:var(--radius);
 }
@@ -99,13 +104,13 @@ html[data-theme="dark"] .ld{
   max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;
   padding:8px 10px 8px 12px;border-radius:16px;
   background:var(--nav-bg);
-  -webkit-backdrop-filter:blur(12px) saturate(1.1);
-          backdrop-filter:blur(12px) saturate(1.1);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+          backdrop-filter:blur(16px) saturate(1.4);
   border:1px solid var(--stroke);
-  box-shadow:0 4px 24px rgba(14,165,233,.06), inset 0 1px 0 rgba(255,255,255,.35);
+  box-shadow:0 4px 24px rgba(14,165,233,.06), var(--edge);
 }
 .ld .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:-.02em;white-space:nowrap;color:var(--ink)}
-.ld .brand-mark{width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.4), inset 0 1px 0 rgba(255,255,255,.35)}
+.ld .brand-logo{width:36px;height:36px;border-radius:12px;flex:none;object-fit:cover;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.7),0 4px 12px rgba(14,165,233,.25)}
 .ld .brand em{font-style:normal;color:var(--accent)}
 .ld .nav-links{display:flex;gap:2px;margin-left:auto}
 .ld .nav-lang{display:none}
@@ -120,7 +125,7 @@ html[data-theme="dark"] .ld{
   white-space:nowrap;
 }
 .ld .btn:active{transform:scale(.97)}
-.ld .btn-primary{background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 14px rgba(14,165,233,.35), inset 0 1px 0 rgba(255,255,255,.35)}
+.ld .btn-primary{background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;box-shadow:0 4px 14px rgba(14,165,233,.35), var(--edge)}
 .ld .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(14,165,233,.45)}
 .ld .btn-ghost{background:var(--chip);color:var(--accent);border:1px solid rgba(125,211,252,.6)}
 .ld .btn-sm{padding:8px 14px;min-height:36px;font-size:13px}
@@ -260,9 +265,9 @@ html[data-theme="dark"] .ld{
 .ld .price-card{padding:26px;display:flex;flex-direction:column;position:relative}
 .ld .price-card.hot{
   background:var(--glass-strong);
-  -webkit-backdrop-filter:blur(24px) saturate(1.1);backdrop-filter:blur(24px) saturate(1.1);
+  -webkit-backdrop-filter:blur(32px) saturate(1.4);backdrop-filter:blur(32px) saturate(1.4);
   border:1px solid rgba(125,211,252,.9);
-  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.35);
+  box-shadow:var(--shadow-lg), var(--edge);
 }
 .ld .hot-badge{position:absolute;top:-13px;left:24px;background:linear-gradient(90deg,#0EA5E9,#0284C7);color:#fff;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:999px;box-shadow:0 4px 14px rgba(14,165,233,.35)}
 .ld .price-card .plan{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
@@ -314,7 +319,7 @@ html[data-theme="dark"] .ld{
 .ld .toast{
   position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);z-index:80;
   background:var(--glass-strong);color:var(--ink);border:1px solid rgba(125,211,252,.6);
-  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   padding:12px 20px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow-lg);
   transition:transform .3s ease;pointer-events:none;
 }
@@ -330,7 +335,7 @@ html[data-theme="dark"] .ld{
 @media (max-width:680px){
   .ld .nav-links{display:none}
   .ld .nav-links.open{display:flex;position:absolute;top:calc(100% + 10px);left:12px;right:12px;flex-direction:column;padding:10px;border-radius:16px;background:var(--glass-strong);border:1px solid var(--stroke);box-shadow:var(--shadow-lg);
-    -webkit-backdrop-filter:blur(24px) saturate(1.1);backdrop-filter:blur(24px) saturate(1.1)}
+    -webkit-backdrop-filter:blur(32px) saturate(1.4);backdrop-filter:blur(32px) saturate(1.4)}
   .ld .nav-links.open a{padding:12px 14px}
   .ld .nav-links.open .nav-lang{display:flex;padding:8px 14px 10px}
   .ld .nav{position:relative}
@@ -352,7 +357,7 @@ html[data-theme="dark"] .ld{
   .ld .nav-shell{padding:0 10px}
   .ld .nav{gap:8px;padding:8px 10px 8px 12px}
   .ld .brand{font-size:16px;gap:8px}
-  .ld .brand-mark{width:30px;height:30px;border-radius:9px}
+  .ld .brand-logo{width:30px;height:30px;border-radius:9px}
   .ld .btn-sm{padding:9px 14px}
 }
 `;
@@ -573,7 +578,7 @@ export default function Landing() {
       <div className="nav-shell">
         <header className="nav">
           <a className="brand" href="#top" aria-label="TipRouter">
-            <span className="brand-mark" aria-hidden="true"><Waypoints size={19} strokeWidth={2.2} /></span>
+            <img className="brand-logo" src="/logo-icon.png" alt="" />
             <span>Tip<em>Router</em></span>
           </a>
           <button className="icon-btn burger" type="button" aria-label="Buka menu" aria-expanded={navOpen} onClick={() => setNavOpen(!navOpen)}>
@@ -892,7 +897,7 @@ export default function Landing() {
         <div className="wrap foot">
           <div>
             <a className="brand" href="#top" style={{ marginBottom: "10px" }}>
-              <span className="brand-mark" aria-hidden="true"><Waypoints size={19} strokeWidth={2.2} /></span>
+              <img className="brand-logo" src="/logo-icon.png" alt="" />
               <span>Tip<em>Router</em></span>
             </a>
             <p className="fine">Gateway API multi-model dengan pembayaran QRIS. Satu key, 33+ model, routing fallback otomatis.</p>

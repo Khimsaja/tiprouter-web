@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun, Send, Waypoints } from "lucide-react";
+import { Moon, Sun, Send } from "lucide-react";
 import { useSession } from "../lib/session";
 import { LanguageToggle, useLang } from "../lib/i18n";
 import NotifBell from "./NotifBell";
@@ -38,9 +38,7 @@ export function SiteHeader() {
     <header className="site">
       <div className="nav">
         <Link className="brand" to="/">
-          <span className="brand-mark" aria-hidden="true">
-            <Waypoints size={19} strokeWidth={2.2} />
-          </span>
+          <img src="/logo-icon.png" alt="TipRouter" />
           <span className="brand-txt">TipRouter</span>
         </Link>
         <button className="burger" aria-label={t("Buka menu")} aria-expanded={open} onClick={() => setOpen(!open)}>
