@@ -62,13 +62,16 @@
     </script>
     <script>
       (function () {
-        try {
-          var t = localStorage.getItem("tiprouter-theme");
-          if (!t) t = "light";
-          document.documentElement.setAttribute("data-theme", t);
-        } catch (e) {
-          document.documentElement.setAttribute("data-theme", "light");
+        var t = null;
+        try { t = localStorage.getItem("tiprouter-theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          try {
+            var m = document.cookie.match(/(?:^|; )tiprouter-theme=(light|dark)(?:;|$)/);
+            if (m) t = m[1];
+          } catch (e) {}
         }
+        if (t !== "light" && t !== "dark") t = "light";
+        document.documentElement.setAttribute("data-theme", t);
       })();
     </script>
   </head>
