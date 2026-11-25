@@ -58,11 +58,12 @@ type ChatMsg = { role: "user" | "assistant"; text: string; usage?: { prompt: num
 
 const LS_KEY = "tiprouter-pg-key";
 
-async function* streamChat(apiKey: string, model: string, messages: { role: string; content: string }[], temperature: number, maxTokens: number): AsyncGenerator<{ delta?: string; usage?: { prompt: number; completion: number; total: number }; error?: string }> {
+async function* streamChat(apiKey: string, model: string, messages: { role: string; content: string }[], temperature: number, maxTokens: number, signal: AbortSignal): AsyncGenerator<{ delta?: string; usage?: { prompt: number; completion: number; total: number }; error?: string }> {
   const res = await fetch("/v1/chat/completions", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: "Bearer " + apiKey },
     body: JSON.stringify({ model, messages, temperature, max_tokens: maxTokens > 0 ? maxTokens : undefined, stream: true }),
+    signal,
   });
   if (!res.ok) {
     let code = "http_" + res.status;
@@ -74,25 +75,31 @@ async function* streamChat(apiKey: string, model: string, messages: { role: stri
   if (!reader) { yield { error: "no_stream" }; return; }
   const dec = new TextDecoder();
   let buf = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
-    buf = parts.pop() || "";
-    for (const part of parts) {
-      const line = part.trim();
-      if (!line.startsWith("data:")) continue;
-      const payload = line.slice(5).trim();
-      if (payload === "[DONE]") continue;
-      try {
-        const d = JSON.parse(payload);
-        const delta = d?.choices?.[0]?.delta?.content;
-        if (typeof delta === "string" && delta) yield { delta };
-        const u = d?.usage;
-        if (u) yield { usage: { prompt: u.prompt_tokens ?? 0, completion: u.completion_tokens ?? 0, total: u.total_tokens ?? 0 } };
-      } catch { /* skip malformed chunk */ }
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split("\n\n");
+      buf = parts.pop() || "";
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (payload === "[DONE]") continue;
+        try {
+          const d = JSON.parse(payload);
+          const delta = d?.choices?.[0]?.delta?.content;
+          if (typeof delta === "string" && delta) yield { delta };
+          const u = d?.usage;
+          if (u) yield { usage: { prompt: u.prompt_tokens ?? 0, completion: u.completion_tokens ?? 0, total: u.total_tokens ?? 0 } };
+        } catch { /* skip malformed chunk */ }
+      }
     }
+  } finally {
+    // Release the stream on stop / completion so the gateway stops
+    // generating instead of burning tokens in the background.
+    try { await reader.cancel(); } catch { /* already closed or aborted */ }
   }
 }
 
@@ -121,7 +128,15 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const stopRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  // Stop yang beneran: batalkan fetch + tutup stream, bukan cuma pasang flag
+  // yang baru dicek pas chunk berikutnya datang.
+  const stop = useCallback(() => {
+    stopRef.current = true;
+    abortRef.current?.abort();
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -198,10 +213,12 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
     setInput("");
     setBusy(true);
     stopRef.current = false;
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     let acc = "";
     let usage: ChatMsg["usage"] = null;
     try {
-      for await (const ev of streamChat(key, model, history, temperature, maxTokens)) {
+      for await (const ev of streamChat(key, model, history, temperature, maxTokens, ctrl.signal)) {
         if (stopRef.current) break;
         if (ev.error) {
           const friendly: Record<string, string> = {
@@ -222,8 +239,10 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
         if (ev.usage) usage = ev.usage;
       }
     } catch {
-      setError(t("Koneksi ke gateway gagal. Coba lagi."));
+      // Abort dari tombol stop bukan error — jangan tampilkan pesan gagal.
+      if (!ctrl.signal.aborted) setError(t("Koneksi ke gateway gagal. Coba lagi."));
     } finally {
+      abortRef.current = null;
       const finalText = acc;
       const finalUsage = usage;
       setMsgs((p) => { const n = [...p]; n[n.length - 1] = { role: "assistant", text: finalText, usage: finalUsage }; return n; });
@@ -353,11 +372,11 @@ export default function Playground({ embedded }: { embedded?: boolean }) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t("Tulis pesan... (Enter buat kirim, Shift+Enter baris baru)")}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (busy) { stopRef.current = true; } else void send(); } }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (busy) { stop(); } else void send(); } }}
                 disabled={resolving}
               />
               {busy ? (
-                <button className="send-btn stop" onClick={() => { stopRef.current = true; }} aria-label={t("Berhenti")}><Square size={17} /></button>
+                <button className="send-btn stop" onClick={() => stop()} aria-label={t("Berhenti")}><Square size={17} /></button>
               ) : (
                 <button className="send-btn" onClick={() => void send()} aria-label={t("Kirim")} disabled={!input.trim() || resolving}><Send size={17} /></button>
               )}
